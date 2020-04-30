@@ -1,4 +1,4 @@
-data = '/data/srlab1/yakir/'
+data = '/data/srlab1/laurie-yakir/'
 tbru = data + 'tbru/'
 tbru_h5ad = tbru + 'munged/'
 
