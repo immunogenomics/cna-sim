@@ -1,6 +1,6 @@
 #!/bin/bash
 
-datadir="/data/srlab1/yakir/tbru.sim"
+datadir="/data/srlab1/laurie-yakir/tbru.sim"
 smalldset="prot_normedscaled.N=18"
 bigdset="prot_normedscaled.N=47"
 dset=$smalldset
