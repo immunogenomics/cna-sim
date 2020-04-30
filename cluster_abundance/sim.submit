@@ -1,0 +1,41 @@
+#!/bin/bash
+
+datadir="/data/srlab1/yakir/tbru.sim"
+smalldset="prot_normedscaled.N=18"
+bigdset="prot_normedscaled.N=47"
+dset=$smalldset
+nnoiselevels=5 # number of different noise levels to generate
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+
+for c in "c0" "c9"
+do
+    for method in "expgrowth_avg_nt20_gr5_ms20" \
+                  "expgrowth_diff_nt20_gr5_ms20" \
+                  "minfwer_avg_ms20" \
+                  "minfwer_diff_ms20"
+    do
+        name="cluster_abundance/$c/$method"
+        mkdir -p $datadir/$dset/$name/out
+        command="python sim.py \
+                --simname $name \
+                --dset $dset \
+                --phenotype $c \
+                --nsim 100 \
+                --method $method \
+                --noisesize \$LSB_JOBINDEX \
+                --outof $nnoiselevels"
+        echo $command
+        if [ -z "$debug" ]
+        then
+            bsub -J $name[1-$nnoiselevels] -q short \
+                -oo $datadir/$dset/$name/out/%I.out \
+                -eo $datadir/$dset/$name/out/%I.err \
+                $BADHOSTS \
+                "$command"
+        else
+            LSB_JOBINDEX=1
+            eval $command
+            exit
+        fi
+    done
+done
