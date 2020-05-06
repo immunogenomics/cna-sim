@@ -1,6 +1,6 @@
 import time, gc
 import numpy as np
-import methods
+from methods import methods
 
 def simulate(method, data, Ys, B, C, T, s):
     zs, fwers, ntests = list(), list(), list()
@@ -11,14 +11,14 @@ def simulate(method, data, Ys, B, C, T, s):
         # run method
         f = getattr(methods, method)
         z, fwer, ntest = f(
-            data.uns['neighbors']['connectivities'],
-            Y, B, C, T, s)
+            data, Y, B, C, T, s)
         zs.append(z)
         fwers.append(fwer)
         ntests.append(ntest)
 
         # print update for debugging
         nsig = (fwer <= 0.05).sum()
+        print('min fwer:', fwer.min())
         if nsig > 0:
             print('***nsig:', nsig)
         else:

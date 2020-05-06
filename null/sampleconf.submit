@@ -3,14 +3,16 @@
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
 smalldset="prot_normedscaled.N=18"
 bigdset="prot_normedscaled.N=47"
-#dset=$smalldset
-dset=$bigdset
+dset=$smalldset
 njobs=100
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 #for method in "expgrowth_diff_nt20_gr5_ms20" \
 #              "minfwer_diff_ms20"
-for method in "expgrowth_diff_nt20_gr5_ms20"
+for method in \
+    "minfwer_diff_ms20" \
+#    "expgrowth_diff_nt20_gr5_ms20" \
+
 do
     name="null/$method"
     mkdir -p $datadir/$dset/$name/out
