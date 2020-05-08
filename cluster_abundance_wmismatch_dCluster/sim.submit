@@ -1,0 +1,55 @@
+#!/bin/bash
+
+causaldset="mrna"
+datadir="/data/srlab1/laurie-yakir/tbru.sim"
+causaldir="/data/srlab1/laurie-yakir/tbru/munged/"
+causaldsetfile="$causaldir/cellX${causaldset}_normedscaled.h5ad"
+dset="mrna_normedscaled.N=30"
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+
+for method in \
+      "expgrowth_avg_nt20_gr5_ms50_Nn100" \
+      #"expgrowth_diff_nt20_gr5_ms50_Nn100" \
+      #"MASC_leiden0p2" \
+      #"MASC_leiden1" \
+      #"MASC_leiden2" \
+      #"MASC_leiden5" \
+      #"MASC_leiden0p5" \
+      #"MASC_leiden5" \
+      #"MASC_leiden10" \
+#      "MASC_leiden5" \
+#      "expgrowth_diff_nt20_gr5_ms20_Nn500" \
+#      "expgrowth_avg_nt20_gr5_ms20_Nn500" \
+#      "minfwer_diff_ms20" \
+
+do
+    for causalclust in \
+        "leiden0p2" \
+        "leiden2" \
+
+    do
+        noise=1
+        name="cluster_abundance_wmismatch_dCluster/$causaldset/noise_$noise/$causalclust/$method"
+        mkdir -p $datadir/$dset/$name/out
+        command="python sim.py \
+                --causal-dset-file $causaldsetfile \
+                --simname $name \
+                --dset $dset \
+                --method $method \
+                --causal-clustering $causalclust \
+                --noise-level $noise \
+                --index \$LSB_JOBINDEX"
+        echo $command
+        if [ -z "$debug" ]
+        then
+            bsub -J $name[1-50] -q short \
+                -oo $datadir/$dset/$name/out/%I.out \
+                -eo $datadir/$dset/$name/out/%I.err \
+                "$command"
+        else
+            LSB_JOBINDEX=1
+            eval $command
+            exit
+        fi
+    done
+done

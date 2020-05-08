@@ -47,8 +47,9 @@ print('data shape', data_.shape)
 
 # assign sampleXmeta and remove other metadata
 data_.uns['sampleXmeta'] = sampleXmeta_
-del data_.obsm['X_pca'], data_.obsm['X_umap']
-del data_.uns['neighbors']
+data_.obsm.pop('X_pca', None)
+data_.obsm.pop('X_umap', None)
+data_.uns.pop('neighbors', None)
 print(data_)
 
 # sanity check

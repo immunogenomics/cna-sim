@@ -46,13 +46,15 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     p = result['model.pvalue'].values
     fwer = p * len(p)
     z = np.sqrt(st.chi2.isf(p, 1))
-    return z, fwer, len(z)
+    return z, fwer, len(z), None
 def MASC_louvain(*args):
     return _MASC(*args, clustertype='louvain')
-def MASC_leiden(*args):
-    return _MASC(*args, clustertype='leiden')
+def MASC_leiden1(*args):
+    return _MASC(*args, clustertype='leiden1')
 def MASC_leiden0p2(*args):
     return _MASC(*args, clustertype='leiden0p2')
+def MASC_leiden0p5(*args):
+    return _MASC(*args, clustertype='leiden0p5')
 def MASC_leiden2(*args):
     return _MASC(*args, clustertype='leiden2')
 def MASC_leiden5(*args):
@@ -68,7 +70,7 @@ def _expgrowth(*args, **kwargs):
             mc.tl._diffusion.diffusion_expgrowth(
                 data.uns['neighbors']['connectivities'], Y, B=B, C=C, T=T, s=s,
                 **kwargs)
-    return z, fwer, ntest
+    return z, fwer, ntest, t
 def expgrowth_avg_nt20_gr5_ms20(*args):
     return _expgrowth(*args,
         maxsteps=20, nontrivial=20, growthreq=0.05, diffusion=False)
@@ -84,6 +86,9 @@ def expgrowth_diff_nt20_gr5_ms20_Nn500(*args):
 def expgrowth_diff_nt20_gr5_ms50_Nn100(*args):
     return _expgrowth(*args,
         maxsteps=50, nontrivial=20, growthreq=0.05, diffusion=True, Nnull=100)
+def expgrowth_avg_nt20_gr5_ms50_Nn100(*args):
+    return _expgrowth(*args,
+        maxsteps=50, nontrivial=20, growthreq=0.05, diffusion=False, Nnull=100)
 def expgrowth_avg_nt100_gr5_ms50(*args):
     return _expgrowth(*args,
         maxsteps=50, nontrivial=100, growthreq=0.05, diffusion=False)
@@ -98,7 +103,7 @@ def _minfwer(*args, **kwargs):
             mc.tl._diffusion.diffusion_minfwer(
                 data.uns['neighbors']['connectivities'], Y, B=B, C=C, T=T, s=s,
                 **kwargs)
-    return z, fwer, ntest
+    return z, fwer, ntest, t
 def minfwer_avg_ms20(*args):
     return _minfwer(*args,
         maxsteps=50, diffusion=False)
