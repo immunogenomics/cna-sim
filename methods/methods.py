@@ -66,9 +66,10 @@ def MASC_leiden10(*args):
 def _expgrowth(*args, **kwargs):
     data, Y, B, C, T, s = args
     kwargs.update({'seed':None})
-    z, fwer, _, _, ntest, t = \
+    z, fwer, _, ntest, t = \
             mc.tl._diffusion.diffusion_expgrowth(
                 data.uns['neighbors']['connectivities'], Y, B=B, C=C, T=T, s=s,
+                skip_fdr=True,
                 **kwargs)
     return z, fwer, ntest, t
 def expgrowth_avg_nt20_gr5_ms20(*args):
