@@ -94,6 +94,7 @@ myMASC <- function(dataset, cluster, contrast, random_effects = NULL, fixed_effe
 }
 #############
 args = commandArgs(trailingOnly=TRUE)
+fixed = args[2:length(args)]
 
 df = read.table(args[1], header=TRUE)
 df$cluster <- as.factor(df$cluster)
@@ -102,6 +103,7 @@ library(lme4)
 result = myMASC(data=df, cluster=df$cluster,
             contrast = "phenotype",
             random_effects = c("id", "batch"),
+            fixed_effects = fixed,
             weights = df$weight,
             verbose = TRUE)
 

@@ -13,12 +13,12 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     othercols = []
     if s is not None:
         for i, s_ in enumerate(s.T):
-            bins = np.linspace(np.min(s_), np.max(s_)+1e-7, 6)
+            bins = np.linspace(np.min(s_), np.max(s_)+1e-7, 4)
             df['s'+str(i)] = np.digitize(s_, bins)
             othercols.append('s'+str(i))
     if T is not None:
         for i, T_ in enumerate(T.T):
-            df['T'+str(i)] = T_
+            df['T'+str(i)] = np.repeat(T_, C)
             othercols.append('T'+str(i))
     df = df.groupby(['id', 'batch', 'phenotype', 'cluster']+othercols, observed=True
                     ).size().to_frame(name='weight').reset_index()
@@ -28,7 +28,9 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     temp.flush()
 
     #execute MASC
-    stream = os.popen('Rscript /PHShome/yr073/mcsc-sim/methods/runmasc.R ' + temp.name)
+    command = 'Rscript /data/srlab1/yakir/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' + \
+        ' '.join(othercols)
+    stream = os.popen(command)
     for line in stream:
         if line == '***RESULTS\n':
             break
@@ -49,18 +51,30 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     return z, fwer, len(z), None
 def MASC_louvain(*args):
     return _MASC(*args, clustertype='louvain')
-def MASC_leiden1(*args):
-    return _MASC(*args, clustertype='leiden1')
 def MASC_leiden0p2(*args):
     return _MASC(*args, clustertype='leiden0p2')
 def MASC_leiden0p5(*args):
     return _MASC(*args, clustertype='leiden0p5')
+def MASC_leiden1(*args):
+    return _MASC(*args, clustertype='leiden1')
 def MASC_leiden2(*args):
     return _MASC(*args, clustertype='leiden2')
 def MASC_leiden5(*args):
     return _MASC(*args, clustertype='leiden5')
 def MASC_leiden10(*args):
     return _MASC(*args, clustertype='leiden10')
+def MASC_dleiden0p2(*args):
+    return _MASC(*args, clustertype='dleiden0p2')
+def MASC_dleiden0p5(*args):
+    return _MASC(*args, clustertype='dleiden0p5')
+def MASC_dleiden1(*args):
+    return _MASC(*args, clustertype='dleiden1')
+def MASC_dleiden2(*args):
+    return _MASC(*args, clustertype='dleiden2')
+def MASC_dleiden5(*args):
+    return _MASC(*args, clustertype='dleiden5')
+def MASC_dleiden10(*args):
+    return _MASC(*args, clustertype='dleiden10')
 
 
 def _expgrowth(*args, **kwargs):

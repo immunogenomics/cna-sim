@@ -26,6 +26,12 @@ np.random.seed(args.index)
 nclusters = len(data.obs[args.causal_clustering].unique())
 clusters = [args.causal_clustering+'_'+str(i) for i in range(nclusters)]
 Ys = sampleXmeta[clusters].values.T
+#exclude small clusters
+sizes = data.obs[args.causal_clustering].value_counts()
+big = (sizes >= 1000).sort_index().values
+Ys = Ys[big]
+print(big)
+print([c for b, c in zip(big, clusters) if b])
 print(Ys.shape)
 Yvar = np.std(Ys, axis=1)
 noiselevels = args.noise_level * Yvar
@@ -39,9 +45,9 @@ res = simulation.simulate(
     Ys,
     sampleXmeta.batch.values,
     sampleXmeta.C.values,
-    None,
-    None)
-res['clusterids'] = np.arange(nclusters)
+    sampleXmeta[['age', 'Sex_M', 'TB_STATUS_CASE', 'NATad4KR']].values,
+    data.obs[['nUMI','percent_mito']].values)
+res['clusterids'] = np.arange(nclusters)[big]
 
 # write results
 outfile = paths.simresults(args.dset, args.simname) + str(args.index) + '.p'

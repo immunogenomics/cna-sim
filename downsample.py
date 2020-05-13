@@ -54,7 +54,7 @@ print(data_)
 
 # sanity check
 if not mc.pp.issorted(data_):
-    print('ERROR: data are not sorted by sample/batch')
+    print('ERROR: data are not sorted by sample')
 
 # compute nearest neighbor graph
 print('computing nn graph')
@@ -63,7 +63,7 @@ sc.pp.neighbors(data_)
 # clustering at different resolutions
 for res in [0.1, 0.2, 0.5, 1, 2, 5, 10]:
     print('clustering at resolution', res)
-    n = 'leiden'+str(res).replace('.','p')
+    n = 'dleiden'+str(res).replace('.','p')
     sc.tl.leiden(data_, resolution=res, key_added=n)
     print('\t', len(data_.obs[n].unique()), 'clusters')
     for i in sorted(data_.obs[n].unique()):
