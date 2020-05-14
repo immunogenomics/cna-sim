@@ -4,10 +4,11 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     import pandas as pd
     import numpy as np
     import scipy.stats as st
+    from time import time
     import os, tempfile
 
     # prepare data
-    df = data.obs[['id',clustertype]].rename(columns={clustertype:'cluster'})
+    df = data.obs[['id',clustertype]].rename(columns={clustertype:'m_cluster'})
     df['batch'] = np.repeat(B, C)
     df['phenotype'] = np.repeat(Y, C)
     othercols = []
@@ -20,32 +21,46 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         for i, T_ in enumerate(T.T):
             df['T'+str(i)] = np.repeat(T_, C)
             othercols.append('T'+str(i))
-    df = df.groupby(['id', 'batch', 'phenotype', 'cluster']+othercols, observed=True
-                    ).size().to_frame(name='weight').reset_index()
+    ps = []
+    corrs = []
 
-    temp = tempfile.NamedTemporaryFile(mode='w+t')
-    df.to_csv(temp, sep='\t', index=False)
-    temp.flush()
+    t0 = time()
+    for c in sorted(df.m_cluster.unique().astype(int)):
+        print(time()-t0, ': cluster', c, 'of', len(df.m_cluster.unique()))
+        df['cluster'] = df.m_cluster == str(c)
+        df_w = df.groupby(['id', 'batch', 'phenotype', 'cluster']+othercols, observed=True
+                        ).size().to_frame(name='weight').reset_index()
+        df_t = df.id.value_counts()
+        print(df_w.shape)
 
-    #execute MASC
-    command = 'Rscript /data/srlab1/yakir/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' + \
-        ' '.join(othercols)
-    stream = os.popen(command)
-    for line in stream:
-        if line == '***RESULTS\n':
-            break
-    result = pd.read_csv(stream, delim_whitespace=True)
-    temp.close()
+        temp = tempfile.NamedTemporaryFile(mode='w+t')
+        df_w.to_csv(temp, sep='\t', index=False)
+        temp.flush()
 
-    # process results and return
-    result.cluster = [
-        int(x.split('cluster')[1])
-        for x in result.cluster
-        ]
-    result = result.sort_values(by='cluster')
-    print(result)
+        #execute MASC
+        command = 'Rscript /data/srlab1/yakir/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' + \
+            ' '.join(othercols)
+        stream = os.popen(command)
+        for line in stream:
+            if line == '***RESULTS\n':
+                break
+        result = pd.read_csv(stream, delim_whitespace=True)
+        temp.close()
 
-    p = result['model.pvalue'].values
+        # process results and return
+        print(result)
+
+        y = df_w[df_w.cluster].set_index('id').weight / df_t
+        corr = pd.DataFrame(y, columns=['y'])
+        corr['x'] = df_w[df_w.cluster].set_index('id').phenotype
+        corr.fillna(0, inplace=True)
+        print(np.corrcoef(corr.x, corr.y)[0,1])
+        print(np.corrcoef(np.argsort(np.argsort(corr.x)),
+            np.argsort(np.argsort(corr.y)))[0,1])
+
+        ps.append(result['model.pvalue'].values[0])
+
+    p = np.array(ps)
     fwer = p * len(p)
     z = np.sqrt(st.chi2.isf(p, 1))
     return z, fwer, len(z), None

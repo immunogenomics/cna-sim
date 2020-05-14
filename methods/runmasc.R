@@ -2,7 +2,8 @@ library(MASC)
 
 #############
 myMASC <- function(dataset, cluster, contrast, random_effects = NULL, fixed_effects = NULL,
-                 verbose = FALSE, save_models = FALSE, save_model_dir = NULL, weights = NULL) {
+                 verbose = FALSE, save_models = FALSE, save_model_dir = NULL, weights = NULL,
+                 first_only = FALSE) {
   # Check inputs
   if (is.null(weights)) {
       weights <- rep(1, nrow(dataset))
@@ -82,6 +83,10 @@ myMASC <- function(dataset, cluster, contrast, random_effects = NULL, fixed_effe
     cluster_models[[i]]$full_model <- full_model
     cluster_models[[i]]$model_lrt <- model_lrt
     cluster_models[[i]]$confint <- contrast_ci
+
+    if(first_only) {
+        break
+    }
   }
 
   # Organize results into output dataframe
@@ -94,18 +99,32 @@ myMASC <- function(dataset, cluster, contrast, random_effects = NULL, fixed_effe
 }
 #############
 args = commandArgs(trailingOnly=TRUE)
-fixed = args[2:length(args)]
+if(length(args) > 1) {
+    fixed = args[2:length(args)]
+} else {
+    fixed = c()
+}
 
 df = read.table(args[1], header=TRUE)
 df$cluster <- as.factor(df$cluster)
 
 library(lme4)
-result = myMASC(data=df, cluster=df$cluster,
-            contrast = "phenotype",
-            random_effects = c("id", "batch"),
-            fixed_effects = fixed,
-            weights = df$weight,
-            verbose = TRUE)
+if(length(fixed) > 0) {
+    result = myMASC(data=df, cluster=df$cluster,
+                contrast = "phenotype",
+                random_effects = c("id", "batch"),
+                fixed_effects = fixed,
+                weights = df$weight,
+                verbose = TRUE,
+                first_only = TRUE)
+} else {
+    result = myMASC(data=df, cluster=df$cluster,
+                contrast = "phenotype",
+                random_effects = c("id", "batch"),
+                weights = df$weight,
+                verbose = TRUE,
+                first_only = TRUE)
+}
 
 cat('***RESULTS\n')
 print(result, row.names=FALSE)

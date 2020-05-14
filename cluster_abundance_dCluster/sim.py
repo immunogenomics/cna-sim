@@ -38,6 +38,10 @@ noiselevels = args.noise_level * Yvar
 noise = np.random.randn(*Ys.shape) * noiselevels[:,None]
 Ys = Ys + noise
 
+# average cellular confounders
+conf = ['nUMI','percent_mito']
+sampleXmeta[conf] = data.obs.groupby('id')[conf].aggregate(np.mean)
+
 # do analysis
 res = simulation.simulate(
     args.method,
@@ -45,8 +49,8 @@ res = simulation.simulate(
     Ys,
     sampleXmeta.batch.values,
     sampleXmeta.C.values,
-    sampleXmeta[['age', 'Sex_M', 'TB_STATUS_CASE', 'NATad4KR']].values,
-    data.obs[['nUMI','percent_mito']].values)
+    sampleXmeta[['age', 'Sex_M', 'TB_STATUS_CASE', 'NATad4KR','nUMI','percent_mito']].values,
+    None)
 res['clusterids'] = np.arange(nclusters)[big]
 
 # write results

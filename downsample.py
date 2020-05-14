@@ -9,6 +9,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--Nbatches', type=int)
 parser.add_argument('--maxNcells', type=int, default=None)
+parser.add_argument('--propcells', type=float, default=None)
 parser.add_argument('--inname', type=str)
 parser.add_argument('--outname', type=str, default=None)
 parser.add_argument('--seed', type=int, default=0)
@@ -38,6 +39,14 @@ if args.maxNcells is not None:
     indices = np.concatenate([[0], np.cumsum(sampleXmeta_.C.values)])
     keep = np.concatenate([
         np.random.choice(np.arange(i, j), replace=False, size=min(j-i, args.maxNcells))
+        for i,j in zip(indices[:-1], indices[1:])
+        ])
+    data_ = data_[keep]
+    sampleXmeta_.C = mc.pp.sample_size(data_)
+elif args.propcells is not None:
+    indices = np.concatenate([[0], np.cumsum(sampleXmeta_.C.values)])
+    keep = np.concatenate([
+        np.random.choice(np.arange(i, j), replace=False, size=int(args.propcells*(j-i)))
         for i,j in zip(indices[:-1], indices[1:])
         ])
     data_ = data_[keep]
