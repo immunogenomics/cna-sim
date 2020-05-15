@@ -13,8 +13,9 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     df['phenotype'] = np.repeat(Y, C)
     othercols = []
     if s is not None:
+        print('coding cellular covariates')
         for i, s_ in enumerate(s.T):
-            bins = np.linspace(np.min(s_), np.max(s_)+1e-7, 4)
+            bins = np.linspace(np.min(s_), np.max(s_)+1e-7, 6)
             df['s'+str(i)] = np.digitize(s_, bins)
             othercols.append('s'+str(i))
     if T is not None:
@@ -51,12 +52,6 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         print(result)
 
         y = df_w[df_w.cluster].set_index('id').weight / df_t
-        corr = pd.DataFrame(y, columns=['y'])
-        corr['x'] = df_w[df_w.cluster].set_index('id').phenotype
-        corr.fillna(0, inplace=True)
-        print(np.corrcoef(corr.x, corr.y)[0,1])
-        print(np.corrcoef(np.argsort(np.argsort(corr.x)),
-            np.argsort(np.argsort(corr.y)))[0,1])
 
         ps.append(result['model.pvalue'].values[0])
 

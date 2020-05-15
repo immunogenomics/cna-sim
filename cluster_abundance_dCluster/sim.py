@@ -30,9 +30,11 @@ Ys = sampleXmeta[clusters].values.T
 sizes = data.obs[args.causal_clustering].value_counts()
 big = (sizes >= 1000).sort_index().values
 Ys = Ys[big]
+
 print(big)
 print([c for b, c in zip(big, clusters) if b])
 print(Ys.shape)
+
 Yvar = np.std(Ys, axis=1)
 noiselevels = args.noise_level * Yvar
 noise = np.random.randn(*Ys.shape) * noiselevels[:,None]
@@ -49,8 +51,8 @@ res = simulation.simulate(
     Ys,
     sampleXmeta.batch.values,
     sampleXmeta.C.values,
-    sampleXmeta[['age', 'Sex_M', 'TB_STATUS_CASE', 'NATad4KR','nUMI','percent_mito']].values,
-    None)
+    sampleXmeta[['age', 'Sex_M', 'TB_STATUS_CASE', 'NATad4KR']].values,
+    data.obs[['nUMI','percent_mito']].values)
 res['clusterids'] = np.arange(nclusters)[big]
 
 # write results

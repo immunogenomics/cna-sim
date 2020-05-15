@@ -1,7 +1,9 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-dset="mrna.N=65_C0p5"
+#dset="mrna.N=65_C0p5"
+#dset="mrna.N=64_C800"
+dset="mrna.N=63_C800"
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for causalclust in \
@@ -36,7 +38,7 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q short \
+                bsub -J $name[1-50] -q normal \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
                     "$command"

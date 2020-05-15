@@ -9,6 +9,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--Nbatches', type=int)
 parser.add_argument('--maxNcells', type=int, default=None)
+parser.add_argument('--minNcells', type=int, default=None)
 parser.add_argument('--propcells', type=float, default=None)
 parser.add_argument('--inname', type=str)
 parser.add_argument('--outname', type=str, default=None)
@@ -27,10 +28,15 @@ sampleXmeta = data.uns['sampleXmeta']
 # downsample samples
 print('downsampling samples')
 batches = sampleXmeta.batch.unique()
-batches_ = np.random.choice(batches, size=args.Nbatches)
+# remove batch 29, which has a really strong batch effect that MASC likely can't model
+batches = [b for b in batches if b != 29]
+batches_ = np.random.choice(batches, replace=False, size=args.Nbatches)
 sampleXmeta_ = sampleXmeta[sampleXmeta.batch.isin(batches_)].copy()
+print('N =', len(sampleXmeta_), 'before minNcells')
+if args.minNcells is not None:
+    sampleXmeta_ = sampleXmeta_[sampleXmeta_.C >= args.minNcells]
 N = len(sampleXmeta_)
-print('N =', N)
+print('N =', N, 'after minNcells')
 data_ = data[data.obs.id.isin(sampleXmeta_.index.values)]
 
 # downsample cells
