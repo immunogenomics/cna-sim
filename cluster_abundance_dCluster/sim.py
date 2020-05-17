@@ -11,6 +11,7 @@ parser.add_argument('--method')
 parser.add_argument('--index', type=int)
 parser.add_argument('--causal-clustering', type=str)
 parser.add_argument('--noise-level', type=float) #in units of std dev of noiseless phenotype
+parser.add_argument('--no-covariates', type=int, default=0)
 args = parser.parse_args()
 
 print('\n\n****')
@@ -40,9 +41,15 @@ noiselevels = args.noise_level * Yvar
 noise = np.random.randn(*Ys.shape) * noiselevels[:,None]
 Ys = Ys + noise
 
-# average cellular confounders
-conf = ['nUMI','percent_mito']
-sampleXmeta[conf] = data.obs.groupby('id')[conf].aggregate(np.mean)
+# set up covariates if necessary
+if args.no_covariates:
+    print('NO covariates')
+    scovs = None
+    ccovs = None
+else:
+    print('WITH covariates')
+    scovs = sampleXmeta[['age', 'Sex_M', 'TB_STATUS_CASE', 'NATad4KR']].values
+    ccovs = data.obs[['nUMI','percent_mito']].values
 
 # do analysis
 res = simulation.simulate(
@@ -51,8 +58,8 @@ res = simulation.simulate(
     Ys,
     sampleXmeta.batch.values,
     sampleXmeta.C.values,
-    sampleXmeta[['age', 'Sex_M', 'TB_STATUS_CASE', 'NATad4KR']].values,
-    data.obs[['nUMI','percent_mito']].values)
+    scovs,
+    ccovs)
 res['clusterids'] = np.arange(nclusters)[big]
 
 # write results
