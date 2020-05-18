@@ -1,5 +1,3 @@
-library(MASC)
-
 #############
 myMASC <- function(dataset, cluster, contrast, random_effects = NULL, fixed_effects = NULL,
                  verbose = FALSE, save_models = FALSE, save_model_dir = NULL, weights = NULL,
