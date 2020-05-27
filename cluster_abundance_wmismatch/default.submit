@@ -5,26 +5,26 @@ dset="mrna.N=63_C800"
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for causalclust in \
-    "dleiden0p2" \
-    "dleiden1" \
-    "dleiden2" \
+    "pcs0_5_dleiden1" \
+    #"pcs0_10_dleiden1" \
+    #"pcs0_20_dleiden1" \
 
 do
     for noise in \
+        "0.5" \
         "1" \
         "2" \
-        "4" \
 
     do
         for method in \
               "expgrowth_avg_nt20_gr5_ms50_Nn100" \
-              #"MASC_dleiden0p2" \
-              #"MASC_dleiden1" \
+              "MASC_dleiden0p2" \
+              "MASC_dleiden1" \
               #"MASC_dleiden2" \
               #"MASC_dleiden5" \
 
         do
-            name="cluster_abundance_dCluster/noise_$noise/$causalclust/$method"
+            name="cluster_abundance_wmismatch/noise_$noise/$causalclust/$method"
             mkdir -p $datadir/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
@@ -36,7 +36,7 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q normal \
+                bsub -J $name[1-50] -q short \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
                     "$command"

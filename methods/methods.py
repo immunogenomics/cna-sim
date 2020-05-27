@@ -96,6 +96,15 @@ def _expgrowth(*args, **kwargs):
                 skip_fdr=True,
                 **kwargs)
     return z, fwer, ntest, t
+def _expgrowthfdr(*args, **kwargs):
+    data, Y, B, C, T, s = args
+    kwargs.update({'seed':None})
+    z, fwer, fdr, ntest, t = \
+            mc.tl._diffusion.diffusion_expgrowth(
+                data.uns['neighbors']['connectivities'], Y, B=B, C=C, T=T, s=s,
+                skip_fdr=False,
+                **kwargs)
+    return z, fdr, ntest, t
 def expgrowth_avg_nt20_gr5_ms20(*args):
     return _expgrowth(*args,
         maxsteps=20, nontrivial=20, growthreq=0.05, diffusion=False)
@@ -114,12 +123,36 @@ def expgrowth_diff_nt20_gr5_ms50_Nn100(*args):
 def expgrowth_avg_nt20_gr5_ms50_Nn100(*args):
     return _expgrowth(*args,
         maxsteps=50, nontrivial=20, growthreq=0.05, diffusion=False, Nnull=100)
-def expgrowth_avg_nt100_gr5_ms50(*args):
+def expgrowthfdr_avg_nt20_gr5_ms50_Nn100(*args):
+    return _expgrowthfdr(*args,
+        maxsteps=50, nontrivial=20, growthreq=0.05, diffusion=False, Nnull=100)
+def expgrowth_avg_nt100_gr5_ms50_Nn100(*args):
     return _expgrowth(*args,
-        maxsteps=50, nontrivial=100, growthreq=0.05, diffusion=False)
+        maxsteps=50, nontrivial=100, growthreq=0.05, diffusion=False, Nnull=100)
+def expgrowth_avg_ntinf_ms50_Nn100(*args):
+    return _expgrowth(*args,
+        maxsteps=50, nontrivial=100, growthreq=None, diffusion=False, Nnull=100)
+def expgrowth_avg_ntinf_ms20_Nn100(*args):
+    return _expgrowth(*args,
+        maxsteps=20, nontrivial=100, growthreq=None, diffusion=False, Nnull=100)
+def expgrowth_avg_ntinf_ms10_Nn100(*args):
+    return _expgrowth(*args,
+        maxsteps=10, nontrivial=100, growthreq=None, diffusion=False, Nnull=100)
 def expgrowth_diff_nt100_gr5_ms50(*args):
     return _expgrowth(*args,
         maxsteps=50, nontrivial=100, growthreq=0.05, diffusion=True)
+
+def _nnreg(*args, **kwargs):
+    data, Y, B, C, T, s = args
+    kwargs.update({'seed':None})
+    z, fwer, _ = \
+            mc.tl._newdiff.nnreg(
+                data.uns['neighbors']['connectivities'], Y, C, B=B, T=T, s=s,
+                **kwargs)
+    return z, fwer, None, None
+def nnreg_ms10_Nn100(*args):
+    return _nnreg(*args,
+        maxsteps=10)
 
 def _minfwer(*args, **kwargs):
     data, Y, B, C, T, s = args

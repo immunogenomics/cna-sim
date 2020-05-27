@@ -85,6 +85,24 @@ for res in [0.1, 0.2, 0.5, 1, 2, 5, 10]:
         c = data_.obs.groupby(by='id')[n].aggregate(lambda x: np.mean(x==str(i)))
         data_.uns['sampleXmeta'][n+'_'+str(i)] = c
 
+# Clusters with PCs removed
+for k in [5, 10, 20]:
+    n = 'pcs0_{}_dleiden1'.format(k)
+    print('removing PCs 0 -', k)
+    data_.obsm['X_pca'][:,:k] = 0
+    sc.pp.neighbors(data_)
+    print('\tclustering at resolution 1')
+    sc.tl.leiden(data_, resolution=1, key_added=n)
+    print('\t', len(data_.obs[n].unique()), 'clusters')
+    for i in sorted(data_.obs[n].unique()):
+        c = data_.obs.groupby(by='id')[n].aggregate(lambda x: np.mean(x==str(i)))
+        data_.uns['sampleXmeta'][n+'_'+str(i)] = c
+
+# re-add PCs, kNN graph, etc
+sc.pp.pca(data_)
+sc.pp.neighbors(data_)
+sc.tl.umap(data_)
+
 # write
 if args.outname is None:
     args.outname = args.inname + '.N=' + str(N)

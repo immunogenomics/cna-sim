@@ -2,7 +2,7 @@
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
 dset="mrna.N=30_C800"
-debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for causalclust in \
     "dleiden0p2" \
@@ -24,12 +24,13 @@ do
               "MASC_dleiden5" \
 
         do
-            name="cluster_abundance_dCluster_lowN/noise_$noise/$causalclust/$method"
+            name="cluster_abundance_dCluster_lowN_nocovs/noise_$noise/$causalclust/$method"
             mkdir -p $datadir/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
                     --dset $dset \
                     --method $method \
+                    --no-covariates 1 \
                     --causal-clustering $causalclust \
                     --noise-level $noise \
                     --index \$LSB_JOBINDEX"

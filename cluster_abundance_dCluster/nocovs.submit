@@ -18,10 +18,10 @@ do
     do
         for method in \
               "expgrowth_avg_nt20_gr5_ms50_Nn100" \
-              "MASC_dleiden0p2" \
-              "MASC_dleiden1" \
-              "MASC_dleiden2" \
-              "MASC_dleiden5" \
+              #"MASC_dleiden0p2" \
+              #"MASC_dleiden1" \
+              #"MASC_dleiden2" \
+              #"MASC_dleiden5" \
 
         do
             name="cluster_abundance_dCluster_nocovs/noise_$noise/$causalclust/$method"
@@ -37,7 +37,7 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q normal \
+                bsub -J $name[1-50] -q short \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
                     "$command"
