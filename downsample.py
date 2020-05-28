@@ -7,7 +7,7 @@ import argparse
 
 # argument parsing
 parser = argparse.ArgumentParser()
-parser.add_argument('--Nbatches', type=int)
+parser.add_argument('--Nbatches', type=int, default=None)
 parser.add_argument('--maxNcells', type=int, default=None)
 parser.add_argument('--minNcells', type=int, default=None)
 parser.add_argument('--propcells', type=float, default=None)
@@ -15,6 +15,10 @@ parser.add_argument('--inname', type=str)
 parser.add_argument('--outname', type=str, default=None)
 parser.add_argument('--seed', type=int, default=0)
 args = parser.parse_args()
+
+print('\n\n****')
+print(args)
+print('****\n\n')
 
 np.random.seed(args.seed)
 
@@ -30,6 +34,8 @@ print('downsampling samples')
 batches = sampleXmeta.batch.unique()
 # remove batch 29, which has a really strong batch effect that MASC likely can't model
 batches = [b for b in batches if b != 29]
+if args.Nbatches is None:
+    args.Nbatches = len(batches)
 batches_ = np.random.choice(batches, replace=False, size=args.Nbatches)
 sampleXmeta_ = sampleXmeta[sampleXmeta.batch.isin(batches_)].copy()
 print('N =', len(sampleXmeta_), 'before minNcells')
@@ -75,8 +81,13 @@ if not mc.pp.issorted(data_):
 print('computing nn graph')
 sc.pp.neighbors(data_)
 
+# computer neighborhood abundances and PCA of that
+print('computing neighborhood abundances and PCA')
+mc.tl._newdiff.nns(data_)
+mc.tl._newdiff.pca(data_)
+
 # clustering at different resolutions
-for res in [0.1, 0.2, 0.5, 1, 2, 5, 10]:
+for res in [0.2, 1, 2, 5]:
     print('clustering at resolution', res)
     n = 'dleiden'+str(res).replace('.','p')
     sc.tl.leiden(data_, resolution=res, key_added=n)
@@ -85,22 +96,8 @@ for res in [0.1, 0.2, 0.5, 1, 2, 5, 10]:
         c = data_.obs.groupby(by='id')[n].aggregate(lambda x: np.mean(x==str(i)))
         data_.uns['sampleXmeta'][n+'_'+str(i)] = c
 
-# Clusters with PCs removed
-for k in [5, 10, 20]:
-    n = 'pcs0_{}_dleiden1'.format(k)
-    print('removing PCs 0 -', k)
-    data_.obsm['X_pca'][:,:k] = 0
-    sc.pp.neighbors(data_)
-    print('\tclustering at resolution 1')
-    sc.tl.leiden(data_, resolution=1, key_added=n)
-    print('\t', len(data_.obs[n].unique()), 'clusters')
-    for i in sorted(data_.obs[n].unique()):
-        c = data_.obs.groupby(by='id')[n].aggregate(lambda x: np.mean(x==str(i)))
-        data_.uns['sampleXmeta'][n+'_'+str(i)] = c
-
-# re-add PCs, kNN graph, etc
-sc.pp.pca(data_)
-sc.pp.neighbors(data_)
+# UMAP
+print('computing umap')
 sc.tl.umap(data_)
 
 # write

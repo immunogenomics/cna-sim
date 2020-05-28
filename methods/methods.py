@@ -86,6 +86,17 @@ def MASC_dleiden5(*args):
 def MASC_dleiden10(*args):
     return _MASC(*args, clustertype='dleiden10')
 
+def _linreg(*args, **kwargs):
+    import numpy as np
+    import scipy.stats as st
+    data, Y, B, C, T, s = args
+    p = mc.tl._newdiff.linreg(data, Y, B, T, **kwargs)
+    return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
+        np.array([p]), \
+        1, \
+        None
+def nnpcreg_ms3_pcs20(*args):
+    return _linreg(*args, repname='sampleXnh_sampleXpc', nfeatures=20)
 
 def _expgrowth(*args, **kwargs):
     data, Y, B, C, T, s = args
