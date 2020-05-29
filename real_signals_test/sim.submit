@@ -4,28 +4,33 @@ datadir="/data/srlab1/laurie-yakir/tbru.sim"
 #dset="mrna.N=65_C0p5"
 #dset="mrna.N=64_C800"
 #dset="mrna.N=63_C800"
-debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for dset in \
-    "mrna.N=149" \
+    "prot.N=149" \
+    "cca30.N=149" \
+    "harmcca13.N=149" \
+    "harmcca20.N=149" \
+    "harmcca30.N=149" \
+    #"mrna.N=149" \
 
 do
     for noise in \
+        "0.1" \
+        "0.5" \
         "1" \
         "2" \
         "4" \
 
     do
         for method in \
-	      "nnpcreg_ms3_pcs20" \
-              "expgrowth_avg_nt20_gr5_ms50_Nn100" \
-	      "MASC_dleiden0p2" \
-	      "MASC_dleiden1" \
-	      "MASC_dleiden2" \
-	      "MASC_dleiden5" \
+	        "nnpcreg_ms3_pcs20" \
+            "clusterreg_dleiden0p2 clusterreg_dleiden1 clusterreg_dleiden2 clusterreg_dleiden5" \
+            "clusterminp_dleiden0p2 clusterminp_dleiden1 clusterminp_dleiden2 clusterminp_dleiden5" \
+            "clusterpcreg_pcs20_dleiden0p2 clusterpcreg_pcs20_dleiden1 clusterpcreg_pcs20_dleiden2 clusterpcreg_pcs20_dleiden5" \
 
         do
-            name="real_signals_test/noise_$noise/$method"
+            name="real_signals_vsclusters/noise_$noise"
             mkdir -p $datadir/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
@@ -36,7 +41,7 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q medium \
+                bsub -J $name[1-50] -q vshort \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
                     "$command"

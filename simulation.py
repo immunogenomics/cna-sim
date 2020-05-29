@@ -2,11 +2,17 @@ import time, gc
 import numpy as np
 from methods import methods
 
-def simulate(method, data, Ys, B, C, T, s):
+def simulate(method, data, Ys, B, C, Ts, s):
+    print(Ts.shape)
+    if len(Ts.shape) == 2:
+        Ts = np.array([Ts]*len(Ys))
+
     zs, fwers, ntests, others = list(), list(), list(), list()
     t0 = time.time()
-    for i, Y in enumerate(Ys):
+    for i, (Y, T) in enumerate(zip(Ys, Ts)):
         print('===', i, ':', time.time() - t0)
+        print(Y.shape)
+        print(T.shape)
 
         # run method
         f = getattr(methods, method)

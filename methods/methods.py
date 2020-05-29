@@ -136,17 +136,85 @@ def MASC_dleiden5(*args):
 def MASC_dleiden10(*args):
     return _MASC(*args, clustertype='dleiden10')
 
+
+import numpy as np
+import scipy.stats as st
 def _linreg(*args, **kwargs):
-    import numpy as np
-    import scipy.stats as st
     data, Y, B, C, T, s = args
     p = mc.tl._newdiff.linreg(data, Y, B, T, **kwargs)
     return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
         np.array([p]), \
         1, \
         None
+def _minp(*args, **kwargs):
+    data, Y, B, C, T, s = args
+    p = mc.tl._newdiff.marg_minp(data, Y, B, T, **kwargs)
+    return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
+        np.array([p]), \
+        1, \
+        None
+def _clusterreg(clustername, *args):
+    data, Y, B, C, T, s = args
+    cols = [clustername + '_'+str(i) for i in range(len(data.obs[clustername].unique()))]
+    data.uns['sampleX'+clustername] = data.uns['sampleXmeta'][cols].values
+    return _linreg(*args, repname='sampleX'+clustername, nfeatures=None)
+def _clusterminp(clustername, *args):
+    data, Y, B, C, T, s = args
+    cols = [clustername + '_'+str(i) for i in range(len(data.obs[clustername].unique()))]
+    data.uns['sampleX'+clustername] = data.uns['sampleXmeta'][cols].values
+    return _minp(*args, repname='sampleX'+clustername, nfeatures=None)
+def _clusterpcreg_pcs20(clustername, *args):
+    data, Y, B, C, T, s = args
+    cols = [clustername + '_'+str(i) for i in range(len(data.obs[clustername].unique()))]
+    data.uns['sampleX'+clustername] = data.uns['sampleXmeta'][cols].values
+    mc.tl._newdiff.pca(data, repname='sampleX'+clustername)
+    nfeatures = min(len(cols), 20)
+    return _linreg(*args, repname='sampleX'+clustername+'_sampleXpc', nfeatures=nfeatures)
+
 def nnpcreg_ms3_pcs20(*args):
     return _linreg(*args, repname='sampleXnh_sampleXpc', nfeatures=20)
+
+def clusterreg_dleiden0p2(*args):
+    return _clusterreg('dleiden0p2', *args)
+def clusterreg_dleiden1(*args):
+    return _clusterreg('dleiden1', *args)
+def clusterreg_dleiden2(*args):
+    return _clusterreg('dleiden2', *args)
+def clusterreg_dleiden5(*args):
+    return _clusterreg('dleiden5', *args)
+
+def clusterminp_dleiden0p2(*args):
+    return _clusterminp('dleiden0p2', *args)
+def clusterminp_dleiden1(*args):
+    return _clusterminp('dleiden1', *args)
+def clusterminp_dleiden2(*args):
+    return _clusterminp('dleiden2', *args)
+def clusterminp_dleiden5(*args):
+    return _clusterminp('dleiden5', *args)
+
+def clusterpcreg_pcs20_dleiden0p2(*args):
+    return _clusterpcreg_pcs20('dleiden0p2', *args)
+def clusterpcreg_pcs20_dleiden1(*args):
+    return _clusterpcreg_pcs20('dleiden1', *args)
+def clusterpcreg_pcs20_dleiden2(*args):
+    return _clusterpcreg_pcs20('dleiden2', *args)
+def clusterpcreg_pcs20_dleiden5(*args):
+    return _clusterpcreg_pcs20('dleiden5', *args)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def _expgrowth(*args, **kwargs):
     data, Y, B, C, T, s = args
@@ -157,15 +225,6 @@ def _expgrowth(*args, **kwargs):
                 skip_fdr=True,
                 **kwargs)
     return z, fwer, ntest, t
-def _expgrowthfdr(*args, **kwargs):
-    data, Y, B, C, T, s = args
-    kwargs.update({'seed':None})
-    z, fwer, fdr, ntest, t = \
-            mc.tl._diffusion.diffusion_expgrowth(
-                data.uns['neighbors']['connectivities'], Y, B=B, C=C, T=T, s=s,
-                skip_fdr=False,
-                **kwargs)
-    return z, fdr, ntest, t
 def expgrowth_avg_nt20_gr5_ms20(*args):
     return _expgrowth(*args,
         maxsteps=20, nontrivial=20, growthreq=0.05, diffusion=False)
@@ -184,9 +243,6 @@ def expgrowth_diff_nt20_gr5_ms50_Nn100(*args):
 def expgrowth_avg_nt20_gr5_ms50_Nn100(*args):
     return _expgrowth(*args,
         maxsteps=50, nontrivial=20, growthreq=0.05, diffusion=False, Nnull=100)
-def expgrowthfdr_avg_nt20_gr5_ms50_Nn100(*args):
-    return _expgrowthfdr(*args,
-        maxsteps=50, nontrivial=20, growthreq=0.05, diffusion=False, Nnull=100)
 def expgrowth_avg_nt100_gr5_ms50_Nn100(*args):
     return _expgrowth(*args,
         maxsteps=50, nontrivial=100, growthreq=0.05, diffusion=False, Nnull=100)
@@ -203,6 +259,8 @@ def expgrowth_diff_nt100_gr5_ms50(*args):
     return _expgrowth(*args,
         maxsteps=50, nontrivial=100, growthreq=0.05, diffusion=True)
 
+#######################3
+# defunct methods
 def _nnreg(*args, **kwargs):
     data, Y, B, C, T, s = args
     kwargs.update({'seed':None})
