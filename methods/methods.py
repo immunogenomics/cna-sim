@@ -1,5 +1,55 @@
 import mcsc as mc
 
+def _MASC_original(data, Y, B, C, T, s, clustertype):
+    import pandas as pd
+    import numpy as np
+    import scipy.stats as st
+    import os, tempfile
+
+    # prepare data
+    df = data.obs[['id',clustertype]].rename(columns={clustertype:'cluster'})
+    df['batch'] = np.repeat(B, C)
+    df['phenotype'] = np.repeat(Y, C)
+    othercols = []
+    if s is not None:
+        for i, s_ in enumerate(s.T):
+            bins = np.linspace(np.min(s_), np.max(s_)+1e-7, 4)
+            df['s'+str(i)] = np.digitize(s_, bins)
+            othercols.append('s'+str(i))
+    if T is not None:
+        for i, T_ in enumerate(T.T):
+            df['T'+str(i)] = np.repeat(T_, C)
+            othercols.append('T'+str(i))
+    df = df.groupby(['id', 'batch', 'phenotype', 'cluster']+othercols, observed=True
+                    ).size().to_frame(name='weight').reset_index()
+
+    temp = tempfile.NamedTemporaryFile(mode='w+t')
+    df.to_csv(temp, sep='\t', index=False)
+    temp.flush()
+
+    #execute MASC
+    command = 'Rscript /data/srlab1/yakir/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' + \
+        ' '.join(othercols)
+    stream = os.popen(command)
+    for line in stream:
+        if line == '***RESULTS\n':
+            break
+    result = pd.read_csv(stream, delim_whitespace=True)
+    temp.close()
+
+    # process results and return
+    result.cluster = [
+        int(x.split('cluster')[1])
+        for x in result.cluster
+        ]
+    result = result.sort_values(by='cluster')
+    print(result)
+
+    p = result['model.pvalue'].values
+    fwer = p * len(p)
+    z = np.sqrt(st.chi2.isf(p, 1))
+    return z, fwer, len(z), None
+
 def _MASC(data, Y, B, C, T, s, clustertype):
     import pandas as pd
     import numpy as np
