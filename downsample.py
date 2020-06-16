@@ -83,8 +83,7 @@ sc.pp.neighbors(data_)
 
 # computer neighborhood abundances and PCA of that
 print('computing neighborhood abundances and PCA')
-mc.tl._newdiff.nns(data_)
-mc.tl._newdiff.pca(data_)
+mc.tl._pfm.nfm(data_)
 
 # clustering at different resolutions
 for res in [0.2, 1, 2, 5]:
@@ -92,9 +91,7 @@ for res in [0.2, 1, 2, 5]:
     n = 'dleiden'+str(res).replace('.','p')
     sc.tl.leiden(data_, resolution=res, key_added=n)
     print('\t', len(data_.obs[n].unique()), 'clusters')
-    for i in sorted(data_.obs[n].unique()):
-        c = data_.obs.groupby(by='id')[n].aggregate(lambda x: np.mean(x==str(i)))
-        data_.uns['sampleXmeta'][n+'_'+str(i)] = c
+    mc.tl._pfm.cfm(data_, n)
 
 # UMAP
 print('computing umap')
