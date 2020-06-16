@@ -26,6 +26,7 @@ np.random.seed(args.index)
 phenotypes = ['Weight','NATad4KR','TB_STATUS_CASE','Sex_M','season_Winter','age']
 
 all_Ys = sampleXmeta[phenotypes].values.T
+print(phenotypes)
 print(all_Ys.shape)
 
 # Add noise

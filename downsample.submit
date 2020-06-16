@@ -1,20 +1,20 @@
 #!/bin/bash
 
-#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for dset in \
-    "mrna" \
-    "prot" \
-    "cca30" \
-    "harmcca13" \
-    "harmcca20" \
-    "harmcca30" \
+    "mrna.autosomes_nob29" \
+    #"mrna" \
+    #"prot" \
+    #"cca30" \
+    #"harmcca13" \
+    #"harmcca20" \
+    #"harmcca30" \
 
 do
     name="$dset"
     command="python -u downsample.py \
             --Nbatches 25 \
-            --maxNcells 800 \
             --inname $dset"
     echo $command
     if [ -z "$debug" ]
