@@ -84,6 +84,7 @@ sc.pp.neighbors(data_)
 # computer neighborhood abundances and PCA of that
 print('computing neighborhood abundances and PCA')
 mc.tl._pfm.nfm(data_)
+mc.tl._pfm.pca(data_)
 
 # clustering at different resolutions
 for res in [0.2, 1, 2, 5]:
