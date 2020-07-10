@@ -1,12 +1,13 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
+dset="mrna"
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
-for dset in \
-    "mrna" \
-#    "prot" \
-#    "cca30" \
+for causalclust in \
+    "leiden2" \
+    #"leiden0p2" \
+    #"leiden1" \
 
 do
     for noise in \
@@ -27,30 +28,30 @@ do
 	    #"linreg_nfm_npcs50_L0" \
 	    #"linreg_nfm_npcs100_L0" \
 	    #"linreg_nfm_npcs20_L0" \
-	    #"linreg_nfm_npcs20_L1em4" \
-	    #"linreg_nfm_npcs20_L1em2" \
-	    #"linreg_nfm_npcs20_L1e0" \
-	    #"linreg_nfm_npcs20_L1e2" \
-	    #"linreg_nfm_npcs20_L1e4" \
-	    #"linreg_nfm_npcs20_L1e6" \
-	    #"linreg_nfm_npcs20_L1e8" \
-	    #"linreg_nfm_npcs20_L1e10" \
-	    #"MASC_leiden0p2" \
-	    #"MASC_leiden1" \
-	    #"MASC_leiden2" \
-	    #"MASC_leiden5" \
-	    #"linreg_dleiden0p2_npcs20_L0" \
-	    #"linreg_dleiden1_npcs20_L0" \
-	    #"linreg_dleiden2_npcs20_L0" \
-	    #"linreg_dleiden5_npcs20_L0" \
+            #"linreg_nfm_npcs20_L1em4" \
+            #"linreg_nfm_npcs20_L1em2" \
+            #"linreg_nfm_npcs20_L1e0" \
+            #"linreg_nfm_npcs20_L1e2" \
+            #"linreg_nfm_npcs20_L1e4" \
+            #"linreg_nfm_npcs20_L1e6" \
+            #"linreg_nfm_npcs20_L1e8" \
+            #"linreg_nfm_npcs20_L1e10" \
+            #"MASC_leiden0p2" \
+            #"MASC_leiden1" \
+            #"MASC_leiden2" \
+            #"MASC_leiden5" \
+            #"linreg_dleiden0p2_npcs20_L0" \                                                                                                                  
+            #"linreg_dleiden1_npcs20_L0" \                                                                                                                    
+            #"linreg_dleiden2_npcs20_L0" \                                                                                                                                #"linreg_dleiden5_npcs20_L0" \
 
         do
-            name="expression_signal_PCs/noise_$noise/$method"
+            name="cluster_abundance_dCluster/noise_$noise/causalclust_$causalclust/$method"
             mkdir -p $datadir/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
                     --dset $dset \
                     --method $method \
+                    --causal-clustering $causalclust \
                     --noise-level $noise \
                     --index \$LSB_JOBINDEX"
             echo $command

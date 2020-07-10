@@ -1,0 +1,52 @@
+#!/bin/bash
+
+datadir="/data/srlab1/laurie-yakir/tbru.sim"
+#dset="mrna.N=65_C0p5"
+#dset="mrna.N=64_C800"
+dset="mrna.N=63_C800"
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+
+for causalclust in \
+    "dleiden0p2" \
+    "dleiden1" \
+    "dleiden2" \
+
+do
+    for noise in \
+        "1" \
+        "2" \
+        "4" \
+
+    do
+        for method in \
+              "expgrowth_avg_nt20_gr5_ms50_Nn100" \
+#              "MASC_dleiden0p2" \
+#              "MASC_dleiden1" \
+#              "MASC_dleiden2" \
+#              "MASC_dleiden5" \
+
+        do
+            name="expression_signal_clustersPC1/noise_$noise/$causalclust/$method"
+            mkdir -p $datadir/$dset/$name/out
+            command="python -u sim.py \
+                    --simname $name \
+                    --dset $dset \
+                    --method $method \
+                    --causal-clustering $causalclust \
+                    --noise-level $noise \
+                    --index \$LSB_JOBINDEX"
+            echo $command
+            if [ -z "$debug" ]
+            then
+                bsub -J $name[1-50] -q medium \
+                    -oo $datadir/$dset/$name/out/%I.out \
+                    -eo $datadir/$dset/$name/out/%I.err \
+                    "$command"
+            else
+                LSB_JOBINDEX=1
+                eval $command
+                exit
+            fi
+        done
+    done
+done

@@ -1,15 +1,13 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-#dset="mrna.N=65_C0p5"
-#dset="mrna.N=64_C800"
-dset="mrna.N=63_C800"
-#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting                                                                 
+dset="mrna" \
 
 for causalclust in \
-    "dleiden0p2" \
-    "dleiden1" \
-    "dleiden2" \
+    "leiden0p2" \
+    "leiden1" \
+    "leiden2" \
 
 do
     for noise in \
@@ -19,14 +17,21 @@ do
 
     do
         for method in \
-              "expgrowth_avg_nt20_gr5_ms50_Nn100" \
-#              "MASC_dleiden0p2" \
-#              "MASC_dleiden1" \
-#              "MASC_dleiden2" \
-#              "MASC_dleiden5" \
+            "mixedmodel_nfm_npcs10" \
+            "mixedmodel_nfm_npcs20" \
+            "mixedmodel_nfm_npcs30" \
+            "mixedmodel_nfm_npcs40" \
+            "mixedmodel_nfm_npcs50" \
+            "MASC_leiden0p2" \
+            "MASC_leiden1" \
+            "MASC_leiden2" \
+            "MASC_leiden5" \
+            #"linreg_dleiden0p2_npcs20_L0" \                                                                                                                  
+            #"linreg_dleiden1_npcs20_L0" \                                                                                                                    
+            #"linreg_dleiden2_npcs20_L0" \
 
         do
-            name="expression_signal_clustersPC1/noise_$noise/$causalclust/$method"
+            name="expression_signal_clustersPC1/noise_$noise/causalclust_$causalclust/$method"
             mkdir -p $datadir/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
@@ -38,7 +43,7 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q medium \
+                bsub -J $name[1-50] -q normal \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
                     "$command"

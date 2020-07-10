@@ -27,25 +27,13 @@ do
 	    #"linreg_nfm_npcs50_L0" \
 	    #"linreg_nfm_npcs100_L0" \
 	    #"linreg_nfm_npcs20_L0" \
-	    #"linreg_nfm_npcs20_L1em4" \
-	    #"linreg_nfm_npcs20_L1em2" \
-	    #"linreg_nfm_npcs20_L1e0" \
-	    #"linreg_nfm_npcs20_L1e2" \
-	    #"linreg_nfm_npcs20_L1e4" \
-	    #"linreg_nfm_npcs20_L1e6" \
-	    #"linreg_nfm_npcs20_L1e8" \
-	    #"linreg_nfm_npcs20_L1e10" \
 	    #"MASC_leiden0p2" \
 	    #"MASC_leiden1" \
 	    #"MASC_leiden2" \
 	    #"MASC_leiden5" \
-	    #"linreg_dleiden0p2_npcs20_L0" \
-	    #"linreg_dleiden1_npcs20_L0" \
-	    #"linreg_dleiden2_npcs20_L0" \
-	    #"linreg_dleiden5_npcs20_L0" \
 
         do
-            name="expression_signal_PCs/noise_$noise/$method"
+            name="expression_signal_PFM_PCs/noise_$noise/$method"
             mkdir -p $datadir/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
@@ -56,7 +44,7 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q medium \
+                bsub -J $name[1-50] -q normal \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
                     "$command"

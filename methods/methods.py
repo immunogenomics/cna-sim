@@ -90,9 +90,22 @@ def _minp(*args, **kwargs):
     data, Y, B, C, T, s = args
     _, _, betap = mc.tl._pfm.linreg(data, Y, B, T, **kwargs)
     return np.array([np.sqrt(st.chi2.isf(betap, 1))]), \
-        betap * len(betap),
+        betap * len(betap), \
         len(betap), \
         None
+
+def linreg_nfm_npcs10_L0(*args):
+    return _linreg(*args, repname='sampleXnh', npcs=10, L=0)
+def linreg_nfm_npcs20_L0(*args):
+    return _linreg(*args, repname='sampleXnh', npcs=20, L=0)
+def linreg_nfm_npcs30_L0(*args):
+    return _linreg(*args, repname='sampleXnh', npcs=30, L=0)
+def linreg_nfm_npcs40_L0(*args):
+    return _linreg(*args, repname='sampleXnh', npcs=40, L=0)
+def linreg_nfm_npcs50_L0(*args):
+    return _linreg(*args, repname='sampleXnh', npcs=50, L=0)
+def linreg_nfm_npcs100_L0(*args):
+    return _linreg(*args, repname='sampleXnh', npcs=100, L=0)
 
 def linreg_nfm_npcs20_L0(*args):
     return _linreg(*args, repname='sampleXnh', npcs=20, L=0)
@@ -123,10 +136,24 @@ def linreg_dleiden5_npcs20_L0(*args):
     return _linreg(*args, repname='sampleXdleiden5', npcs=20, L=0)
 
 
+def _mixedmodel(*args, **kwargs):
+    data, Y, B, C, T, s = args
+    p, _, _ = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
+    return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
+        np.array([p]), \
+        1, \
+        None
 
-
-
-
+def mixedmodel_nfm_npcs10(*args):
+    return _mixedmodel(*args, repname='sampleXnh', npcs=10)
+def mixedmodel_nfm_npcs20(*args):
+    return _mixedmodel(*args, repname='sampleXnh', npcs=20)
+def mixedmodel_nfm_npcs30(*args):
+    return _mixedmodel(*args, repname='sampleXnh', npcs=30)
+def mixedmodel_nfm_npcs40(*args):
+    return _mixedmodel(*args, repname='sampleXnh', npcs=40)
+def mixedmodel_nfm_npcs50(*args):
+    return _mixedmodel(*args, repname='sampleXnh', npcs=50)
 
 
 

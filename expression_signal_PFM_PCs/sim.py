@@ -26,13 +26,12 @@ sample_covs = ['age', 'Sex_M', 'TB_STATUS_CASE', 'season_Winter', 'Weight', 'NAT
 
 # simulate phenotype
 np.random.seed(args.index)
-n_sim_pcs = 20 #nclusters
-sim_pcs = np.arange(n_sim_pcs)+1
-sim_pc_names = ["causal_PC" + s for s in sim_pcs.astype("str")] #clusters
+n_sim_pcs = 20 #Number of PFM PCs to test
+sim_pcs = np.arange(n_sim_pcs)
+sim_pc_names = ["causal_PFM_PC" + s for s in sim_pcs.astype("str")]
 
 for n_pc in sim_pcs:
-    data.obs['causal_PC'+str(n_pc)] = data.obsm['X_pca'][:,n_pc-1]
-    sampleXmeta['causal_PC'+str(n_pc)] = data.obs.groupby('id')['causal_PC'+str(n_pc)].aggregate(np.mean)
+    sampleXmeta['causal_PFM_PC'+str(n_pc)] = data.uns['sampleXnh_sampleXpc'][:,n_pc]
 
 Ys = sampleXmeta[sim_pc_names].values.T
 print(Ys.shape)
@@ -52,7 +51,7 @@ res = simulation.simulate(
         sampleXmeta.C.values,
         sampleXmeta[['age', 'Sex_M', 'TB_STATUS_CASE', 'NATad4KR']].values,
         None) # no cellular covariates
-res['clusterids'] = np.arange(n_sim_pcs)
+res['phenotype'] = sim_pc_names
     
 # Write Results to Output File(s)
 outfile = paths.simresults(args.dset, args.simname) + str(args.index) + '.p'
