@@ -19,7 +19,7 @@ print(args)
 print('****\n\n')
 
 # read data
-data = sc.read(paths.simdata + args.dset + '.h5ad')
+data = sc.read(paths.tbru_h5ad + args.dset + '.h5ad', backed='r')
 sampleXmeta = data.uns['sampleXmeta']
 
 # simulate phenotype

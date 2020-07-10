@@ -2,16 +2,17 @@
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
 #dset="mrna.N=63_C800"
-dset="mrna.N=149"
+dset="mrna"
 #dset="prot_normedscaled.N=30_C=500"
 njobs=10
-#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for method in \
-    "nnpcreg_ms3_pcs20" \
-    #"expgrowth_avg_nt20_gr5_ms50_Nn100" \
-    #"expgrowth_avg_ntinf_ms50_Nn100" \
-    #"expgrowth_avg_ntinf_ms20_Nn100" \
+    "mixedmodel_nfm_npcs10" \
+    "mixedmodel_nfm_npcs20" \
+    "mixedmodel_nfm_npcs30" \
+    "mixedmodel_nfm_npcs40" \
+    "mixedmodel_nfm_npcs50" \
 
 do
     name="null_vanilla/$method"
