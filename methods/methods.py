@@ -1,4 +1,6 @@
 import mcsc as mc
+import numpy as np
+import scipy.stats as st
 
 def _MASC(data, Y, B, C, T, s, clustertype):
     import pandas as pd
@@ -23,7 +25,7 @@ def _MASC(data, Y, B, C, T, s, clustertype):
             df['T'+str(i)] = np.repeat(T_, C)
             othercols.append('T'+str(i))
     ps = []
-    ors = []
+    betas = []
 
     t0 = time()
     for c in sorted(df.m_cluster.unique().astype(int)):
@@ -54,13 +56,20 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         y = df_w[df_w.cluster].set_index('id').weight / df_t
 
         ps.append(result['model.pvalue'].values[0])
-        ors.append(result['model.beta'].values[0])
-        
-    p = np.array(ps)
-    fwer = p * len(p)
-    z = np.sqrt(st.chi2.isf(p, 1))
-    OR = np.array(ors)
-    return z, fwer, len(z), OR, None
+        betas.append(-result['model.beta'].values[0]) # NOTE SIGN FLIP -- because runmasc
+                                                    # reports beta for the cells not in the
+                                                    # cluster
+
+    cell_scores = np.zeros(len(data))
+    for c, p, beta in zip(sorted(df.m_cluster.unique().astype(int)), ps, betas):
+        if p * len(ps) <= 0.05:
+            cell_scores[df.m_cluster.astype(int) == c] = beta
+
+    ps = np.array(ps)
+    fwers = ps * len(ps)
+    zs = np.sqrt(st.chi2.isf(ps, 1))
+    betas = np.array(betas)
+    return zs, fwers, len(z), betas, cell_scores, None
 def MASC_leiden0p2(*args):
     return _MASC(*args, clustertype='leiden0p2')
 def MASC_leiden1(*args):
@@ -79,75 +88,26 @@ def MASC_dleiden5(*args):
     return _MASC(*args, clustertype='dleiden5')
 
 
-import numpy as np
-import scipy.stats as st
-def _linreg(*args, **kwargs):
-    data, Y, B, C, T, s = args
-    p, _, _ = mc.tl._pfm.linreg(data, Y, B, T, **kwargs)
-    return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
-        np.array([p]), \
-        1, \
-        None, \
-        None
-def _minp(*args, **kwargs):
-    data, Y, B, C, T, s = args
-    _, _, betap = mc.tl._pfm.linreg(data, Y, B, T, **kwargs)
-    return np.array([np.sqrt(st.chi2.isf(betap, 1))]), \
-        betap * len(betap), \
-        len(betap), \
-        None, \
-        None
+def diffuse_phenotype(data, s, nsteps=3):
+    a = data.uns['neighbors']['connectivities']
+    colsums = np.array(a.sum(axis=0)).flatten() + 1
 
-def linreg_nfm_npcs10_L0(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=10, L=0)
-def linreg_nfm_npcs20_L0(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=0)
-def linreg_nfm_npcs30_L0(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=30, L=0)
-def linreg_nfm_npcs40_L0(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=40, L=0)
-def linreg_nfm_npcs50_L0(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=50, L=0)
-def linreg_nfm_npcs100_L0(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=100, L=0)
-
-def linreg_nfm_npcs20_L0(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=0)
-def linreg_nfm_npcs20_L1em4(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=1e-4)
-def linreg_nfm_npcs20_L1em2(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=1e-2)
-def linreg_nfm_npcs20_L1e0(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=1)
-def linreg_nfm_npcs20_L1e2(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=1e2)
-def linreg_nfm_npcs20_L1e4(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=1e4)
-def linreg_nfm_npcs20_L1e6(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=1e6)
-def linreg_nfm_npcs20_L1e8(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=1e8)
-def linreg_nfm_npcs20_L1e10(*args):
-    return _linreg(*args, repname='sampleXnh', npcs=20, L=1e10)
-
-def linreg_dleiden0p2_npcs20_L0(*args):
-    return _linreg(*args, repname='sampleXdleiden0p2', npcs=20, L=0)
-def linreg_dleiden1_npcs20_L0(*args):
-    return _linreg(*args, repname='sampleXdleiden1', npcs=20, L=0)
-def linreg_dleiden2_npcs20_L0(*args):
-    return _linreg(*args, repname='sampleXdleiden2', npcs=20, L=0)
-def linreg_dleiden5_npcs20_L0(*args):
-    return _linreg(*args, repname='sampleXdleiden5', npcs=20, L=0)
-
-
+    for i in range(nsteps):
+        s = a.dot(s/colsums) + s/colsums
+    return s
 def _mixedmodel(*args, **kwargs):
     data, Y, B, C, T, s = args
     p, beta_vals, beta_pvals = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
+
+    nbhd_scores = data.uns[kwargs['repname']+'_featureXpc'].dot(beta_vals)
+    cell_scores = diffuse_phenotype(nbhd_scores)
     return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
         np.array([p]), \
         1, \
         beta_vals, \
-        beta_pvals
+        beta_pvals, \
+        cell_scores, \
+        nbhd_scores
 
 def mixedmodel_nfm_npcs10(*args):
     return _mixedmodel(*args, repname='sampleXnh', npcs=10)
@@ -163,18 +123,6 @@ def mixedmodel_nfm_npcs50(*args):
 def mixedmodel_cfm_leiden2(*args):
     return _mixedmodel(*args, repname='sampleXleiden2', npcs=20)
 def mixedmodel_cfm_leiden5(*args):
-    return _mixedmodel(*args, repname='sampleXleiden2', npcs=20)
+    return _mixedmodel(*args, repname='sampleXleiden5', npcs=20)
 def mixedmodel_cfm_leiden10(*args):
-    return _mixedmodel(*args, repname='sampleXleiden2', npcs=20)
-
-def diffuse_phenotype(data, phenotype_values, nsteps=3):
-    a = data.uns['neighbors']['connectivities']
-    colsums = np.array(a.sum(axis=0)).flatten() + 1
-    s = phenotype_values.reshape(len(phenotype_values), 1)
-
-    for i in range(nsteps):
-        s = a.dot(s/colsums[:,None]) + s/colsums[:,None]
-    #snorm = s / np.sum(s,axis=0)
-    return s[:,0]
-
-
+    return _mixedmodel(*args, repname='sampleXleiden10', npcs=20)

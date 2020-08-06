@@ -24,7 +24,7 @@ do
 	    "MASC_leiden5" \
 	   	   
         do
-            name="expression_signal_PCs/noise_$noise/$method"
+            name="geneexpPCs/noise_$noise/$method"
             mkdir -p $datadir/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
