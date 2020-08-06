@@ -1,0 +1,71 @@
+#!/bin/bash
+
+datadir="/data/srlab1/laurie-yakir/tbru.sim"
+dset="mrna"
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+
+for causalclust in \
+    "leiden0p2" \
+    "leiden1" \
+
+do
+    for noise in \
+        "1" \
+        "2" \
+        "4" \
+
+    do
+        for method in \
+	    "mixedmodel_cfm_leiden2" \
+	    "mixedmodel_cfm_leiden5" \
+	    "mixedmodel_cfm_leiden10" \
+	    "MASC_leiden0p2" \
+	    "MASC_leiden1" \
+	    "MASC_leiden2" \
+	    "MASC_leiden5" \
+	    "mixedmodel_nfm_npcs20" \
+	    #"mixedmodel_nfm_npcs10"\
+	    #"mixedmodel_nfm_npcs30"\
+	    #"mixedmodel_nfm_npcs40"\
+	    #"mixedmodel_nfm_npcs50"\
+	    #"linreg_nfm_npcs10_L0" \
+	    #"linreg_nfm_npcs30_L0" \
+	    #"linreg_nfm_npcs40_L0" \
+	    #"linreg_nfm_npcs50_L0" \
+	    #"linreg_nfm_npcs100_L0" \
+	    #"linreg_nfm_npcs20_L0" \
+            #"linreg_nfm_npcs20_L1em4" \
+            #"linreg_nfm_npcs20_L1em2" \
+            #"linreg_nfm_npcs20_L1e0" \
+            #"linreg_nfm_npcs20_L1e2" \
+            #"linreg_nfm_npcs20_L1e4" \
+            #"linreg_nfm_npcs20_L1e6" \
+            #"linreg_nfm_npcs20_L1e8" \
+            #"linreg_nfm_npcs20_L1e10" \
+            #"linreg_dleiden0p2_npcs20_L0" \                                                                              #"linreg_dleiden1_npcs20_L0" \                                                                                #"linreg_dleiden2_npcs20_L0" \                                                                                #"linreg_dleiden5_npcs20_L0" \
+
+        do
+            name="cluster_abundance_dCluster/noise_$noise/causalclust_$causalclust/$method"
+            mkdir -p $datadir/$dset/$name/out
+            command="python -u sim.py \
+                    --simname $name \
+                    --dset $dset \
+                    --method $method \
+                    --causal-clustering $causalclust \
+                    --noise-level $noise \
+                    --index \$LSB_JOBINDEX"
+            echo $command
+            if [ -z "$debug" ]
+            then
+                bsub -J $name[1-50] -q medium \
+                    -oo $datadir/$dset/$name/out/%I.out \
+                    -eo $datadir/$dset/$name/out/%I.err \
+                    "$command"
+            else
+                LSB_JOBINDEX=1
+                eval $command
+                exit
+            fi
+        done
+    done
+done
