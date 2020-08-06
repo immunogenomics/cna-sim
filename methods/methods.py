@@ -175,6 +175,6 @@ def diffuse_phenotype(data, phenotype_values, nsteps=3):
     for i in range(nsteps):
         s = a.dot(s/colsums[:,None]) + s/colsums[:,None]
     #snorm = s / np.sum(s,axis=0)
-    return snorm[:,0]
+    return s[:,0]
 
 
