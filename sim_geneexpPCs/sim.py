@@ -1,6 +1,7 @@
 # Import Package Dependencies
 import pickle, argparse
 import numpy as np
+import pandas as pd
 import scanpy as sc
 import paths, simulation
 from methods import methods # For phenotype diffusion function
@@ -30,8 +31,7 @@ sim_pcs = np.arange(n_phenotypes)
 pheno_names = ["causal_PC" + s for s in sim_pcs.astype("str")]
 
 true_cell_scores = pd.DataFrame(data.obsm['X_pca'][:,:n_phenotypes], columns=pheno_names)
-sim.avg_within_sample(data, true_cell_scores)
-Ys = sampleXmeta[pheno_names].values.T
+Ys = simulation.avg_within_sample(data, true_cell_scores)
 print(Ys.shape)
 
 # Add noise
@@ -44,13 +44,13 @@ Ys = Ys + noise
 res = simulation.simulate(
         args.method,
         data,
-        Ys,
+        Ys.values,
         sampleXmeta.batch.values,
         sampleXmeta.C.values,
         None, # no sample-level covariates
         None, # no cellular covariates
         true_cell_scores.T)
-res['phenotype'] = phenotype_names
+res['phenotype'] = pheno_names
 
 # Write Results to Output File(s)
 outfile = paths.simresults(args.dset, args.simname) + str(args.index) + '.p'

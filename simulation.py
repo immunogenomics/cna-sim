@@ -4,8 +4,13 @@ from methods import methods
 
 def avg_within_sample(data, true_cell_scores):
     cols = true_cell_scores.columns.values
-    true_cell_scores['id'] = data.obs.id
+    true_cell_scores['id'] = data.obs.id.values
+
+    # this is to use the fact that pandas will match appropriately by sample
     data.uns['sampleXmeta'][cols] = true_cell_scores.groupby('id').aggregate(np.mean)[cols]
+    Ys = data.uns['sampleXmeta'][cols]
+    data.uns['sampleXmeta'].drop(columns=cols, inplace=True)
+    return Ys.T
 
 def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores):
     if Ts is None:
@@ -33,7 +38,9 @@ def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores):
         beta_pvals.append(beta_pval)
         est_cell_scores.append(est_cell_score)
         others.append(other)
-        interpretabilities.append(np.corrcoef(true_cell_scores[i], est_cell_score)[0,1])
+        interpretabilities.append(
+            np.corrcoef(true_cell_scores.values[i].astype(np.float), est_cell_score)[0,1])
+        print('CORR:', interpretabilities[-1])
 
         # print update for debugging
         nsig = (fwer <= 0.05).sum()

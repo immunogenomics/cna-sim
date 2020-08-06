@@ -69,7 +69,7 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     fwers = ps * len(ps)
     zs = np.sqrt(st.chi2.isf(ps, 1))
     betas = np.array(betas)
-    return zs, fwers, len(z), betas, cell_scores, None
+    return zs, fwers, len(zs), betas, ps, cell_scores, None
 def MASC_leiden0p2(*args):
     return _MASC(*args, clustertype='leiden0p2')
 def MASC_leiden1(*args):
@@ -99,8 +99,8 @@ def _mixedmodel(*args, **kwargs):
     data, Y, B, C, T, s = args
     p, beta_vals, beta_pvals = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
 
-    nbhd_scores = data.uns[kwargs['repname']+'_featureXpc'].dot(beta_vals)
-    cell_scores = diffuse_phenotype(nbhd_scores)
+    nbhd_scores = data.uns[kwargs['repname']+'_featureXpc'][:,:len(beta_vals)].dot(beta_vals)
+    cell_scores = diffuse_phenotype(data, nbhd_scores)
     return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
         np.array([p]), \
         1, \
