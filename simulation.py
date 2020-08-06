@@ -8,7 +8,7 @@ def simulate(method, data, Ys, B, C, Ts, s):
     elif len(Ts.shape) == 2:
         Ts = np.array([Ts]*len(Ys))
 
-    zs, fwers, ntests, others = list(), list(), list(), list()
+    zs, fwers, ntests, beta_vals_list, beta_pvals_list = list(), list(), list(), list(), list()
     t0 = time.time()
     for i, (Y, T) in enumerate(zip(Ys, Ts)):
         print('===', i, ':', time.time() - t0)
@@ -16,12 +16,13 @@ def simulate(method, data, Ys, B, C, Ts, s):
 
         # run method
         f = getattr(methods, method)
-        z, fwer, ntest, other = f(
+        z, fwer, ntest, beta_vals, beta_pvals = f(
             data, Y, B, C, T, s)
         zs.append(z)
         fwers.append(fwer)
         ntests.append(ntest)
-        others.append(other)
+        beta_vals_list.append(beta_vals)
+        beta_pvals_list.append(beta_pvals)
 
         # print update for debugging
         nsig = (fwer <= 0.05).sum()
@@ -35,4 +36,5 @@ def simulate(method, data, Ys, B, C, Ts, s):
     return {'zs':np.array(zs),
             'fwers':np.array(fwers),
             'ntests':np.array(ntests),
-            'others':np.array(others)}
+            'beta_vals':np.array(beta_vals_list),
+            'beta_pvals':np.array(beta_pvals_list)}

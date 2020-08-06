@@ -23,7 +23,7 @@ def _MASC(data, Y, B, C, T, s, clustertype):
             df['T'+str(i)] = np.repeat(T_, C)
             othercols.append('T'+str(i))
     ps = []
-    corrs = []
+    ors = []
 
     t0 = time()
     for c in sorted(df.m_cluster.unique().astype(int)):
@@ -54,11 +54,13 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         y = df_w[df_w.cluster].set_index('id').weight / df_t
 
         ps.append(result['model.pvalue'].values[0])
-
+        ors.append(result['model.beta'].values[0])
+        
     p = np.array(ps)
     fwer = p * len(p)
     z = np.sqrt(st.chi2.isf(p, 1))
-    return z, fwer, len(z), None
+    OR = np.array(ors)
+    return z, fwer, len(z), OR, None
 def MASC_leiden0p2(*args):
     return _MASC(*args, clustertype='leiden0p2')
 def MASC_leiden1(*args):
@@ -85,6 +87,7 @@ def _linreg(*args, **kwargs):
     return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
         np.array([p]), \
         1, \
+        None, \
         None
 def _minp(*args, **kwargs):
     data, Y, B, C, T, s = args
@@ -92,6 +95,7 @@ def _minp(*args, **kwargs):
     return np.array([np.sqrt(st.chi2.isf(betap, 1))]), \
         betap * len(betap), \
         len(betap), \
+        None, \
         None
 
 def linreg_nfm_npcs10_L0(*args):
@@ -138,11 +142,12 @@ def linreg_dleiden5_npcs20_L0(*args):
 
 def _mixedmodel(*args, **kwargs):
     data, Y, B, C, T, s = args
-    p, beta, betap = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
+    p, beta_vals, beta_pvals = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
     return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
         np.array([p]), \
         1, \
-        betap
+        beta_vals, \
+        beta_pvals
 
 def mixedmodel_nfm_npcs10(*args):
     return _mixedmodel(*args, repname='sampleXnh', npcs=10)
@@ -154,3 +159,22 @@ def mixedmodel_nfm_npcs40(*args):
     return _mixedmodel(*args, repname='sampleXnh', npcs=40)
 def mixedmodel_nfm_npcs50(*args):
     return _mixedmodel(*args, repname='sampleXnh', npcs=50)
+
+def mixedmodel_cfm_leiden2(*args):
+    return _mixedmodel(*args, repname='sampleXleiden2', npcs=20)
+def mixedmodel_cfm_leiden5(*args):
+    return _mixedmodel(*args, repname='sampleXleiden2', npcs=20)
+def mixedmodel_cfm_leiden10(*args):
+    return _mixedmodel(*args, repname='sampleXleiden2', npcs=20)
+
+def diffuse_phenotype(data, phenotype_values, nsteps=3):
+    a = data.uns['neighbors']['connectivities']
+    colsums = np.array(a.sum(axis=0)).flatten() + 1
+    s = phenotype_values.reshape(len(phenotype_values), 1)
+
+    for i in range(nsteps):
+        s = a.dot(s/colsums[:,None]) + s/colsums[:,None]
+    snorm = s / np.sum(s,axis=0)
+    return snorm[:,0]
+
+

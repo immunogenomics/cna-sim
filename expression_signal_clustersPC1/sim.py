@@ -4,6 +4,8 @@ import numpy as np
 import scanpy as sc
 import paths, simulation
 import pandas as pd
+from scipy import stats
+from methods import methods
 
 # Parse Arguments 
 parser = argparse.ArgumentParser()
@@ -22,9 +24,6 @@ print('****\n\n')
 # Read Data                                                                                                                                                   
 data = sc.read(paths.tbru_h5ad + args.dset + '.h5ad', backed = "r")
 sampleXmeta = data.uns['sampleXmeta']
-
-# Define Covariates                                                                                                                                           
-sample_covs = ['age', 'Sex_M', 'TB_STATUS_CASE', 'season_Winter', 'Weight', 'NATad4KR']
 
 # Simulate Phenotype
 np.random.seed(args.index)
@@ -72,10 +71,9 @@ res = simulation.simulate(
     Ys,
     sampleXmeta.batch.values,
     sampleXmeta.C.values,
-    sampleXmeta[sample_covs].values,
+    None, # no sample-level covariates
     None) # no cellular covariates
-
-res['causal_cluster'] = clusters_fulllabel
+res['phenotype'] = clusters_fulllabel
 
 # Write Results to Output File(s)                                                                                                   
 outfile = paths.simresults(args.dset, args.simname) + str(args.index) + '.p'

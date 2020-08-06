@@ -52,7 +52,7 @@ res = simulation.simulate(
     Ys,
     sampleXmeta.batch.values,
     sampleXmeta.C.values,
-    sampleXmeta[sample_covs].values,
+    None, #sampleXmeta[sample_covs].values,
     None)
 res['clusterids'] = np.arange(nclusters)[big]
 

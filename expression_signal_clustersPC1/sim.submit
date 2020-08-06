@@ -17,18 +17,19 @@ do
 
     do
         for method in \
-            "mixedmodel_nfm_npcs10" \
-            "mixedmodel_nfm_npcs20" \
-            "mixedmodel_nfm_npcs30" \
-            "mixedmodel_nfm_npcs40" \
-            "mixedmodel_nfm_npcs50" \
-            "MASC_leiden0p2" \
-            "MASC_leiden1" \
-            "MASC_leiden2" \
-            "MASC_leiden5" \
-            #"linreg_dleiden0p2_npcs20_L0" \                                                                                                                  
-            #"linreg_dleiden1_npcs20_L0" \                                                                                                                    
-            #"linreg_dleiden2_npcs20_L0" \
+	    "mixedmodel_cfm_leiden2" \
+	    "mixedmodel_cfm_leiden5" \
+	    "mixedmodel_cfm_leiden10" \
+	    "MASC_leiden0p2" \
+	    "MASC_leiden1" \
+	    "MASC_leiden2" \
+	    "MASC_leiden5" \
+	    "mixedmodel_nfm_npcs20" \
+            #"mixedmodel_nfm_npcs10" \
+            #"mixedmodel_nfm_npcs30" \
+            #"mixedmodel_nfm_npcs40" \
+            #"mixedmodel_nfm_npcs50" \
+            #"linreg_dleiden0p2_npcs20_L0" \                                                                              #"linreg_dleiden1_npcs20_L0" \                                                                                #"linreg_dleiden2_npcs20_L0" \
 
         do
             name="expression_signal_clustersPC1/noise_$noise/causalclust_$causalclust/$method"

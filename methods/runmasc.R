@@ -90,7 +90,12 @@ myMASC <- function(dataset, cluster, contrast, random_effects = NULL, fixed_effe
   # Organize results into output dataframe
   output <- data.frame(cluster = attributes(designmat)$dimnames[[2]],
                        size = colSums(designmat))
-  output$model.pvalue <- sapply(cluster_models, function(x) x$model_lrt[["Pr(>Chisq)"]][2])
+  output$model.pvalue <- 1
+  output$model.beta <- 0
+
+  cluster = cluster_models[[1]]
+  output$model.pvalue[1] <- cluster$model_lrt[["Pr(>Chisq)"]][2]
+  output$model.beta[1] <- fixef(cluster$full_model)[[contrast]]
 
   # Return MASC results
   return(output)
