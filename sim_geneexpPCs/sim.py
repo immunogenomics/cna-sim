@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 import paths, simulation
-from methods import methods # For phenotype diffusion function
 from scipy import stats
 
 # Parse Arguments
