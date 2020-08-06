@@ -138,11 +138,11 @@ def linreg_dleiden5_npcs20_L0(*args):
 
 def _mixedmodel(*args, **kwargs):
     data, Y, B, C, T, s = args
-    p, _, _ = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
+    p, beta, betap = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
     return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
         np.array([p]), \
         1, \
-        None
+        betap
 
 def mixedmodel_nfm_npcs10(*args):
     return _mixedmodel(*args, repname='sampleXnh', npcs=10)
@@ -154,9 +154,3 @@ def mixedmodel_nfm_npcs40(*args):
     return _mixedmodel(*args, repname='sampleXnh', npcs=40)
 def mixedmodel_nfm_npcs50(*args):
     return _mixedmodel(*args, repname='sampleXnh', npcs=50)
-
-
-
-
-
-
