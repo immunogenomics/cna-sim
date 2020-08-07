@@ -87,27 +87,27 @@ def MASC_dleiden2(*args):
 def MASC_dleiden5(*args):
     return _MASC(*args, clustertype='dleiden5')
 
-
-def diffuse_phenotype(data, s, nsteps=3):
-    a = data.uns['neighbors']['connectivities']
-    colsums = np.array(a.sum(axis=0)).flatten() + 1
-
-    for i in range(nsteps):
-        s = a.dot(s/colsums) + s/colsums
-    return s
+########################################
 def _mixedmodel(*args, **kwargs):
-    data, Y, B, C, T, s = args
-    p, beta_vals, beta_pvals = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
+    def diffuse_phenotype(data, s, nsteps=3):
+        a = data.uns['neighbors']['connectivities']
+        colsums = np.array(a.sum(axis=0)).flatten() + 1
 
-    nbhd_scores = data.uns[kwargs['repname']+'_featureXpc'][:,:len(beta_vals)].dot(beta_vals)
-    cell_scores = diffuse_phenotype(data, nbhd_scores)
-    return np.array([np.sqrt(st.chi2.isf(p, 1))]), \
-        np.array([p]), \
+        for i in range(nsteps):
+            s = a.dot(s/colsums) + s/colsums
+        return s
+
+    data, Y, B, C, T, s = args
+    res = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
+    cell_scores = diffuse_phenotype(data, res.beta)
+
+    return np.array([np.sqrt(st.chi2.isf(res.p, 1))]), \
+        np.array([res.p]), \
         1, \
-        beta_vals, \
-        beta_pvals, \
-        cell_scores, \
-        nbhd_scores
+        res.gamma, \
+        res.gamma_p, \
+        res.beta, \
+        cell_scores
 
 def mixedmodel_nfm_npcs10(*args):
     return _mixedmodel(*args, repname='sampleXnh', npcs=10)
