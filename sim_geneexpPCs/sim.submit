@@ -1,7 +1,7 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for dset in \
     "mrna" \
@@ -11,17 +11,17 @@ for dset in \
 do
     for noise in \
 	    "0" \
-        "1" \
-        "2" \
-        "4" \
+#        "1" \
+#        "2" \
+#        "4" \
 
     do
         for method in \
-	    "MASC_leiden0p2" \
-	    "mixedmodel_nfm_npcs20" \
-	    "MASC_leiden2" \
-	    "MASC_leiden1" \
-	    "MASC_leiden5" \
+            "mixedmodel_nfm_npcs20" \
+            "MASC_leiden0p2" \
+            "MASC_leiden2" \
+            "MASC_leiden1" \
+            "MASC_leiden5" \
 	   	   
         do
             name="geneexpPCs/noise_$noise/$method"
@@ -35,7 +35,7 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q medium \
+                bsub -J $name[1-1] -q medium \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
                     "$command"
