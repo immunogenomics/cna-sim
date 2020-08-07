@@ -4,13 +4,19 @@ from methods import methods
 
 def avg_within_sample(data, true_cell_scores):
     cols = true_cell_scores.columns.values
-    true_cell_scores['id'] = data.obs.id.values
+    true_cell_scores['id'] = data.obs.id
 
     # this is to use the fact that pandas will match appropriately by sample
     data.uns['sampleXmeta'][cols] = true_cell_scores.groupby('id').aggregate(np.mean)[cols]
     Ys = data.uns['sampleXmeta'][cols]
     data.uns['sampleXmeta'].drop(columns=cols, inplace=True)
     return Ys.T
+
+def add_noise(Ys, noiselevels): #Ys is assumed to have one row per phenotype
+    Yvar = np.std(Ys, axis=1)
+    noiselevels = noiselevels * Yvar
+    noise = np.random.randn(*Ys.shape) * noiselevels[:,None]
+    return Ys + noise
 
 def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores):
     if Ts is None:

@@ -14,7 +14,6 @@ parser.add_argument('--method')
 parser.add_argument('--index', type=int)
 parser.add_argument('--noise-level', type=float) #in units of std dev of noiseless phenotype
 args = parser.parse_args()
-
 print('\n\n****')
 print(args)
 print('****\n\n')
@@ -34,10 +33,7 @@ Ys = simulation.avg_within_sample(data, true_cell_scores)
 print(Ys.shape)
 
 # Add noise
-Yvar = np.std(Ys, axis=1)
-noiselevels = args.noise_level * Yvar
-noise = np.random.randn(*Ys.shape) * noiselevels[:,None]
-Ys = Ys + noise
+Ys = simulation.add_noise(Ys, args.noise_level)
 
 # Execute Analysis
 res = simulation.simulate(
