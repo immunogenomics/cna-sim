@@ -28,7 +28,8 @@ n_phenotypes = 20
 sim_pcs = np.arange(n_phenotypes)
 pheno_names = ["causal_PC" + s for s in sim_pcs.astype("str")]
 
-true_cell_scores = pd.DataFrame(data.obsm['X_pca'][:,:n_phenotypes], columns=pheno_names)
+true_cell_scores = pd.DataFrame(data.obsm['X_pca'][:,:n_phenotypes], columns=pheno_names,
+                                index=data.obs.index)
 Ys = simulation.avg_within_sample(data, true_cell_scores)
 print(Ys.shape)
 
