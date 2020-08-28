@@ -4,8 +4,6 @@ import numpy as np
 import scanpy as sc
 import paths, simulation
 import pandas as pd
-from scipy import stats
-from methods import methods
 
 # Parse Arguments 
 parser = argparse.ArgumentParser()
@@ -15,6 +13,7 @@ parser.add_argument('--method')
 parser.add_argument('--index', type=int)
 parser.add_argument('--causal-clustering', type=str)
 parser.add_argument('--noise-level', type=float) #in units of std dev of noiseless phenotype
+parser.add_argument('--QC-clusters', type=bool)
 args = parser.parse_args()
 
 print('\n\n****')
@@ -22,60 +21,59 @@ print(args)
 print('****\n\n')
 
 # Read Data                                                                                                                                                   
+
 data = sc.read(paths.tbru_h5ad + args.dset + '.h5ad', backed = "r")
 sampleXmeta = data.uns['sampleXmeta']
 
 # Simulate Phenotype
+
 np.random.seed(args.index)
 
-nclusters = len(data.obs[args.causal_clustering].unique())
-clusters = [args.causal_clustering+'_'+str(i) for i in range(nclusters)]
+clusters = data.obs[args.causal_clustering].unique()
+if args.QC_clusters:
+     clusters = simulation.discard_bad_clusters(data, args.causal_clustering,
+                                                     min_cells_per_sample = 50,
+                                                     min_samples_per_cluster = 10,
+                                                     clust_batch_cor_thresh = 0.25)
+     clusters = clusters.astype(int)
 
-# Select Causal Clusters on Which to Perform PCA
-max_clusters_tested = 10
-if nclusters > 10:
-    clusters = np.array(clusters)[np.arange(10)]
-    nclusters = 10
-clusters_fulllabel = clusters
-clusters = [i.split("_",1)[1] for i in clusters]
+n_phenotypes = len(clusters)
+if n_phenotypes > 10:
+    n_phenotypes = 10
+    clusters = clusters[0:10]
+pheno_names = [args.causal_clustering+'_'+str(i) for i in clusters]
 
-causal_clust = clusters[0] # iterate through                                                                                                                 
-cells_in_clust = np.where(data.obs[args.causal_clustering].values==causal_clust)[0]
-res = sc.pp.pca(data = data.obsm['X_pca'][cells_in_clust,:], n_comps = 20)
-df = pd.DataFrame(res)
-df['id'] = data.obs['id'].values[cells_in_clust]
-Ys = df.groupby('id')[0].aggregate(np.mean)[None,:]
+true_cell_scores = np.zeros((n_phenotypes, data.obsm['X_pca'].shape[0]))
+for i_phenotype in np.arange(n_phenotypes):
+    clust = clusters[i_phenotype]
+    cells_in_clust = np.where(data.obs[args.causal_clustering].values==str(clust))[0]
+    res = sc.pp.pca(data = data.obsm['X_pca'][cells_in_clust,:], n_comps = 3)
+    true_cell_scores[i_phenotype, cells_in_clust] = res[:,0]
 
-for causal_clust in np.array(clusters)[np.arange(1, len(clusters))]:
-    cells_in_clust = np.where(data.obs[args.causal_clustering].values==causal_clust)[0]
-    res = sc.pp.pca(data = data.obsm['X_pca'][cells_in_clust,:], n_comps = 20)
-    df = pd.DataFrame(res)
-    df['id'] = data.obs['id'].values[cells_in_clust]
-    Ys = np.concatenate((Ys,df.groupby('id')[0].aggregate(np.mean)[None,:]), axis=0)
+true_cell_scores = pd.DataFrame(true_cell_scores.T, columns=pheno_names,
+                                index=data.obs.index)
 
-# Impute missing values as zero
-for i in np.arange(Ys.shape[0]):
-    loc_nans = np.isnan(Ys[i,])
-    Ys[i,loc_nans] = 0
+Ys = simulation.avg_within_sample(data, true_cell_scores)
+print(Ys.shape)
 
-# Add Noise
-Yvar = np.std(Ys, axis=1)
-noiselevels = args.noise_level * Yvar
-noise = np.random.randn(*Ys.shape) * noiselevels[:,None]
-Ys = Ys + noise
+# Add noise                                                                                                                                                                                
+Ys = simulation.add_noise(Ys, args.noise_level)
 
-# Execute Analysis                                                                                                                                           
+# Execute Analysis                                                                                                                                                                         
 res = simulation.simulate(
-    args.method,
-    data,
-    Ys,
-    sampleXmeta.batch.values,
-    sampleXmeta.C.values,
-    None, # no sample-level covariates
-    None) # no cellular covariates
-res['phenotype'] = clusters_fulllabel
+        args.method,
+        data,
+        Ys.values,
+        sampleXmeta.batch.values,
+        sampleXmeta.C.values,
+        None, # no sample-level covariates                                                                                                                                                 
+        None, # no cellular covariates                                                                                                                                                     
+        true_cell_scores.T,
+        False, # do not report per-cell scores
+        True) # Filter phenotypes based on correlation to batch
+res['phenotype'] = pheno_names
 
-# Write Results to Output File(s)                                                                                                   
+# Write Results to Output File(s)                                                                                                                                                          
 outfile = paths.simresults(args.dset, args.simname) + str(args.index) + '.p'
 print('writing', outfile)
 pickle.dump(res, open(outfile, 'wb'))

@@ -45,7 +45,9 @@ res = simulation.simulate(
         sampleXmeta.C.values,
         None, # no sample-level covariates
         None, # no cellular covariates
-        true_cell_scores.T)
+        true_cell_scores.T,
+        False, # do not store true and estimated cell scores
+        True) # filter out phenotypes with correlation to batch
 res['phenotype'] = pheno_names
 
 # Write Results to Output File(s)
