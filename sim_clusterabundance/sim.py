@@ -12,22 +12,26 @@ parser.add_argument('--method')
 parser.add_argument('--index', type=int)
 parser.add_argument('--causal-clustering', type=str)
 parser.add_argument('--noise-level', type=float) #in units of std dev of noiseless phenotype
-parser.add_argument('--QC-clusters', type=bool, default=0)
+parser.add_argument('--QCclusters', type=bool, default=0)
 args = parser.parse_args()
 print('\n\n****')
 print(args)
 print('****\n\n')
 
-# Read Data
-data = sc.read(paths.tbru_h5ad + args.dset + '.h5ad', backed = "r")
+## Load Data                                                                                                                                                                    
+data = sc.read(paths.tbru_h5ad + args.dset +'.h5ad', backed = "r")
 sampleXmeta = data.uns['sampleXmeta']
+
+### If harmonized                                                                                                                                                   
+if args.dset[0:4]=="harm":
+    data.obsm['X_pca'] = data.X
 
 # Simulate Phenotype
 np.random.seed(args.index)
 
-## compute true cell scores
+## Compute true cell scores
 true_cell_scores = pd.get_dummies(data.obs[args.causal_clustering])
-if args.QC_clusters:
+if args.QCclusters:
      retain_clusters = simulation.discard_bad_clusters(data, args.causal_clustering, 
                                                      min_cells_per_sample = 50, 
                                                      min_samples_per_cluster = 10,
@@ -43,7 +47,7 @@ print(Ys.shape)
 
 # Add noise
 Ys = simulation.add_noise(Ys, args.noise_level)
-
+    
 # Do analysis
 res = simulation.simulate(
     args.method,
@@ -52,10 +56,10 @@ res = simulation.simulate(
     sampleXmeta.batch.values,
     sampleXmeta.C.values,
     None, #sampleXmeta[sample_covs].values,
-    None,
+    None, #No cell-level covariates
     true_cell_scores.T,
-    False, # Do not report cell scores
-    True) # Filter phenotypes correlated with batch
+    False, # Do NOT report cell scores
+    False) # Do NOT filter phenotypes correlated with batch
 print(Ys.shape)
 res['phenotype'] = pheno_names
 

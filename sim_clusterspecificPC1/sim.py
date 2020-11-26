@@ -13,24 +13,25 @@ parser.add_argument('--method')
 parser.add_argument('--index', type=int)
 parser.add_argument('--causal-clustering', type=str)
 parser.add_argument('--noise-level', type=float) #in units of std dev of noiseless phenotype
-parser.add_argument('--QC-clusters', type=bool)
+parser.add_argument('--QCclusters', type=bool)
 args = parser.parse_args()
 
 print('\n\n****')
 print(args)
 print('****\n\n')
 
-# Read Data                                                                                                                                                   
+### Simulate Phenotype                                                                                                                                                                         
 
-data = sc.read(paths.tbru_h5ad + args.dset + '.h5ad', backed = "r")
+# load dataset                                                                                                                                                                         
+data = sc.read(paths.tbru_h5ad + args.dset +'.h5ad', backed = "r")
 sampleXmeta = data.uns['sampleXmeta']
+if args.dset[0:4]=="harm":
+    data.obsm['X_pca'] = data.X
 
 # Simulate Phenotype
-
 np.random.seed(args.index)
-
 clusters = data.obs[args.causal_clustering].unique()
-if args.QC_clusters:
+if args.QCclusters:
      clusters = simulation.discard_bad_clusters(data, args.causal_clustering,
                                                      min_cells_per_sample = 50,
                                                      min_samples_per_cluster = 10,
@@ -70,7 +71,7 @@ res = simulation.simulate(
         None, # no cellular covariates                                                                                                                                                     
         true_cell_scores.T,
         False, # do not report per-cell scores
-        True) # Filter phenotypes based on correlation to batch
+        False) # Filter phenotypes based on correlation to batch
 res['phenotype'] = pheno_names
 
 # Write Results to Output File(s)                                                                                                                                                          

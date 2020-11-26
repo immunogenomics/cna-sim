@@ -96,7 +96,7 @@ myMASC <- function(dataset, cluster, contrast, random_effects = NULL, fixed_effe
   cluster = cluster_models[[1]]
   output$model.pvalue[1] <- cluster$model_lrt[["Pr(>Chisq)"]][2]
   output$model.beta[1] <- fixef(cluster$full_model)[[contrast]]
-
+  
   # Return MASC results
   return(output)
 }

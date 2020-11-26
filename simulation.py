@@ -96,7 +96,6 @@ def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores,
         others.append(other)
         interpretabilities.append(
             np.corrcoef(true_cell_scores.values[i].astype(np.float), est_cell_score)[0,1])
-        print('CORR:', interpretabilities[-1])
 
         # print update for debugging
         nsig = (fwer <= 0.05).sum()

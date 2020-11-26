@@ -2,13 +2,13 @@
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting                                                                 
-dset="mrna" \
+dset="harmcca30" \
 QCclusters="True" 
 
 for causalclust in \
-    "leiden0p2" \
-    "leiden1" \
     "leiden2" \
+    #"leiden1" \
+    #"leiden0p2" \
 
 do
     for noise in \
@@ -35,7 +35,7 @@ do
                     --causal-clustering $causalclust \
                     --noise-level $noise \
                     --index \$LSB_JOBINDEX \
-                    --QC-clusters $QCclusters"
+                    --QCclusters $QCclusters"
             echo $command
             if [ -z "$debug" ]
             then

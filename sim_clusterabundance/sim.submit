@@ -1,14 +1,14 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-dset="mrna"
+dset="harmcca30"
 QCclusters="True"
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for causalclust in \
-    "leiden0p2" \
-    "leiden1" \
     "leiden2" \
+    #"leiden1" \
+    #"leiden0p2" \
 
 do
     for noise in \
@@ -38,11 +38,11 @@ do
                     --causal-clustering $causalclust \
                     --noise-level $noise \
                     --index \$LSB_JOBINDEX \
-                    --QC-clusters $QCclusters"
+                    --QCclusters $QCclusters"
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q normal \
+                bsub -J $name[1-50] -q medium \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
                     "$command"

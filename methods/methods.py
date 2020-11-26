@@ -31,6 +31,8 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     for c in sorted(df.m_cluster.unique().astype(int)):
         print(time()-t0, ': cluster', c, 'of', len(df.m_cluster.unique()))
         df['cluster'] = df.m_cluster == str(c)
+        if np.sum(df['cluster'])==1:
+            continue
         df_w = df.groupby(['id', 'batch', 'phenotype', 'cluster']+othercols, observed=True
                         ).size().to_frame(name='weight').reset_index()
         df_t = df.id.value_counts()
@@ -59,7 +61,7 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         betas.append(-result['model.beta'].values[0]) # NOTE SIGN FLIP -- because runmasc
                                                     # reports beta for the cells not in the
                                                     # cluster
-
+        
     cell_scores = np.zeros(len(data))
     for c, p, beta in zip(sorted(df.m_cluster.unique().astype(int)), ps, betas):
         if p * len(ps) <= 0.05:

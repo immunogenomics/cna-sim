@@ -18,22 +18,25 @@ print('\n\n****')
 print(args)
 print('****\n\n')
 
-# Read Data
+### Simulate Phenotype
+
+# load dataset
 data = sc.read(paths.tbru_h5ad + args.dset +'.h5ad', backed = "r")
 sampleXmeta = data.uns['sampleXmeta']
+if args.dset[0:4]=="harm":
+    data.obsm['X_pca'] = data.X
 
 # simulate phenotype
 np.random.seed(args.index)
 n_phenotypes = 20
 sim_pcs = np.arange(n_phenotypes)
 pheno_names = ["causal_PC" + s for s in sim_pcs.astype("str")]
-
 true_cell_scores = pd.DataFrame(data.obsm['X_pca'][:,:n_phenotypes], columns=pheno_names,
                                 index=data.obs.index)
 Ys = simulation.avg_within_sample(data, true_cell_scores)
 print(Ys.shape)
 
-# Add noise
+# add noise
 Ys = simulation.add_noise(Ys, args.noise_level)
 
 # Execute Analysis
@@ -47,7 +50,7 @@ res = simulation.simulate(
         None, # no cellular covariates
         true_cell_scores.T,
         False, # do not store true and estimated cell scores
-        True) # filter out phenotypes with correlation to batch
+        False) # filter out phenotypes with correlation to batch
 res['phenotype'] = pheno_names
 
 # Write Results to Output File(s)

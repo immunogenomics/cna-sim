@@ -17,9 +17,13 @@ print('\n\n****')
 print(args)
 print('****\n\n')
 
-# Read Data
-data = sc.read(paths.tbru_h5ad + args.dset + '.h5ad', backed = "r")
+### Simulate Phenotype 
+
+# load dataset                                                                                                                                                                 
+data = sc.read(paths.tbru_h5ad + args.dset +'.h5ad', backed = "r")
 sampleXmeta = data.uns['sampleXmeta']
+if args.dset[0:4]=="harm":
+    data.obsm['X_pca'] = data.X
 
 # Simulate phenotype
 np.random.seed(args.index)
@@ -44,10 +48,10 @@ res = simulation.simulate(
         sampleXmeta.batch.values,
         sampleXmeta.C.values,
         None, # no sample-level covariates
-        None,
-        true_cell_scores.T, # no cellular covariates
+        None, # no cellular covariates  
+        true_cell_scores.T,
         False, # Do not report cell scores
-        True) # Filter out phenotypes with correlation to batch
+        False) # Filter out phenotypes with correlation to batch
 res['phenotype'] = pheno_names
 
 # Write Results to Output File(s)
