@@ -90,6 +90,22 @@ def MASC_dleiden5(*args):
     return _MASC(*args, clustertype='dleiden5')
 
 ########################################
+def cnav3(*args, **kwargs):
+    data, Y, B, C, T, s = args
+    res = mc.tl._pfm.association(data, Y, B, T, **kwargs)
+
+    data.obs.loc[data.uns['keptcells'], 'ncorrs'] = res.ncorrs
+    data.obs.loc[~data.uns['keptcells'], 'ncorrs'] = 0
+
+    return np.array([np.sqrt(st.chi2.isf(res.p, 1))]), \
+        np.array([res.p]), \
+        1, \
+        None, \
+        None, \
+        data.obs.ncorrs.values, \
+        None
+
+########################################
 def _mixedmodel(*args, **kwargs):
     def diffuse_phenotype(data, s, nsteps=3):
         a = data.uns['neighbors']['connectivities']

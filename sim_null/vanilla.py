@@ -1,4 +1,5 @@
 import pickle, argparse
+import pandas as pd
 import numpy as np
 import scanpy as sc
 import mcsc as mc
@@ -30,6 +31,7 @@ Ys = mc.tl._stats.conditional_permutation(
     args.nsim).T
 
 # do analysis
+true_scores = pd.DataFrame(np.random.randn(args.nsim, len(data)))
 res = simulation.simulate(
     args.method,
     data,
@@ -37,7 +39,8 @@ res = simulation.simulate(
     sampleXmeta.batch.values,
     sampleXmeta.C.values,
     None,
-    None)
+    None,
+    true_scores)
 
 # write results
 outfile = paths.simresults(args.dset, args.simname) + str(args.index) + '.p'

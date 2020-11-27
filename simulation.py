@@ -38,7 +38,7 @@ def discard_bad_clusters(data, cluster_res, min_cells_per_sample, min_samples_pe
         if i_cluster==keep_clust[0]:
             cluster_scores = (np.array(data.obs[cluster_res]==i_cluster)*1).reshape(-1,1)
         else:
-            cluster_scores = np.hstack((cluster_scores, 
+            cluster_scores = np.hstack((cluster_scores,
                                         (np.array(data.obs[cluster_res]==i_cluster)*1).reshape(-1,1)))
     loc_final_set = phenos_uncorr_with_batch(data,cluster_scores, clust_batch_cor_thresh)
     return np.array(keep_clust)[loc_final_set]
