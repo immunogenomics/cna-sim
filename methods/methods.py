@@ -92,10 +92,15 @@ def MASC_dleiden5(*args):
 ########################################
 def cnav3(*args, **kwargs):
     data, Y, B, C, T, s = args
+    if 'suffix' in kwargs:
+        suffix = kwargs['suffix']
+    else:
+        suffix = ''
+
     res = mc.tl._pfm.association(data, Y, B, T, **kwargs)
 
-    data.obs.loc[data.uns['keptcells'], 'ncorrs'] = res.ncorrs
-    data.obs.loc[~data.uns['keptcells'], 'ncorrs'] = 0
+    data.obs.loc[data.uns['keptcells'+suffix], 'ncorrs'] = res.ncorrs
+    data.obs.loc[~data.uns['keptcells'+suffix], 'ncorrs'] = 0
 
     return np.array([np.sqrt(st.chi2.isf(res.p, 1))]), \
         np.array([res.p]), \
@@ -104,6 +109,9 @@ def cnav3(*args, **kwargs):
         None, \
         data.obs.ncorrs.values, \
         None
+
+def cnav3_3steps(*args, **kwargs):
+    return cnav3(*args, **kwargs, suffix='_3steps')
 
 ########################################
 def _mixedmodel(*args, **kwargs):

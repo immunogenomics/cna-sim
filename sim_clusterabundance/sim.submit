@@ -1,7 +1,7 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-dset="harmcca20"
+dset="harmcca30"
 QCclusters="True"
 debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
@@ -20,6 +20,7 @@ do
     do
         for method in \
         "cnav3" \
+        "cnav3_3steps" \
 	    #"mixedmodel_nfm_npcs20" \
 	    #"MASC_leiden0p2" \
 	    #"MASC_leiden1" \
