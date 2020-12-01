@@ -100,7 +100,7 @@ def cnav3(*args, **kwargs):
     res = mc.tl._pfm.association(data, Y, B, T, **kwargs)
 
     data.obs.loc[data.uns['keptcells'+suffix], 'ncorrs'] = res.ncorrs
-    data.obs.loc[~data.uns['keptcells'+suffix], 'ncorrs'] = 0
+    data.obs.loc[~data.uns['keptcells'+suffix], 'ncorrs'] = np.nan
 
     return np.array([np.sqrt(st.chi2.isf(res.p, 1))]), \
         np.array([res.p]), \

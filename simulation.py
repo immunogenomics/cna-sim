@@ -94,8 +94,9 @@ def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores,
         beta_pvals.append(beta_pval)
         est_cell_scores.append(est_cell_score)
         others.append(other)
+        ix = ~np.isnan(est_cell_score)
         interpretabilities.append(
-            np.corrcoef(true_cell_scores.values[i].astype(np.float), est_cell_score)[0,1])
+            np.corrcoef(true_cell_scores.values[i].astype(np.float)[ix], est_cell_score[ix])[0,1])
 
         # print update for debugging
         nsig = (fwer <= 0.05).sum()
@@ -104,6 +105,12 @@ def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores,
             print('***nsig:', nsig)
         else:
             print('nsig:', nsig)
+
+        # print memory usage
+        import os
+        import psutil
+        process = psutil.Process(os.getpid())
+        print('mem usage:', process.memory_info().rss / 1e6, 'MB')
 
         gc.collect()
     if report_cell_scores:
@@ -123,8 +130,8 @@ def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores,
             'ntests':np.array(ntests),
             'beta_vals':np.array(beta_vals),
             'beta_pvals':np.array(beta_pvals),
-            'est_cell_scores': None, 
-            'true_cell_scores': None, 
+            'est_cell_scores': None,
+            'true_cell_scores': None,
             'others':np.array(others),
             'interpretabilities':np.array(interpretabilities)
             }
