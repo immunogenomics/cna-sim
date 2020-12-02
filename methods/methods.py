@@ -101,6 +101,7 @@ def cnav3(*args, **kwargs):
 
     data.obs.loc[data.uns['keptcells'+suffix], 'ncorrs'] = res.ncorrs
     data.obs.loc[~data.uns['keptcells'+suffix], 'ncorrs'] = np.nan
+    #TODO: set cells with FDR>5% to have estimated cell scores of 0 versus nan?
 
     return np.array([np.sqrt(st.chi2.isf(res.p, 1))]), \
         np.array([res.p]), \
