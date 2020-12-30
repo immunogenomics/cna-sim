@@ -49,7 +49,7 @@ res = simulation.simulate(
         None, # no sample-level covariates
         None, # no cellular covariates
         true_cell_scores.T,
-        False, # do not store true and estimated cell scores
+        False, # store true and estimated cell scores
         False) # filter out phenotypes with correlation to batch
 res['phenotype'] = pheno_names
 

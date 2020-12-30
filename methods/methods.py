@@ -43,8 +43,9 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         temp.flush()
 
         #execute MASC
-        command = 'Rscript /data/srlab1/yakir/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' + \
-            ' '.join(othercols)
+        command = 'Rscript /data/srlab/lrumker/MCSC_Project/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' +' '.join(othercols)
+        #command = 'Rscript /data/srlab1/yakir/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' + \
+        #    ' '.join(othercols)
         stream = os.popen(command)
         for line in stream:
             if line == '***RESULTS\n':
@@ -67,6 +68,9 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         if p * len(ps) <= 0.05:
             cell_scores[df.m_cluster.astype(int) == c] = beta
 
+    # If using cosine similarity for interpretability
+    #cell_scores = cell_scores-np.mean(cell_scores)
+            
     ps = np.array(ps)
     fwers = ps * len(ps)
     zs = np.sqrt(st.chi2.isf(ps, 1))
@@ -98,10 +102,18 @@ def cnav3(*args, **kwargs):
         suffix = ''
 
     res = mc.tl._pfm.association(data, Y, B, T, **kwargs)
-
+    
     data.obs.loc[data.uns['keptcells'+suffix], 'ncorrs'] = res.ncorrs
+    
+    ### Sets cells with FDR>5% to have estimated cell scores of 0, for correlation comparison
+    #data.obs.loc[abs(data.obs.ncorrs)<res.fdr_5p_t, 'ncorrs'] = 0  
+    
+    ### Sets cells with FDR>5% to have estimated cell scores of NaN, for cosine similarity comparison
+    #mean_val = np.nanmean(data.obs.ncorrs.values) 
+    #data.obs.loc[abs(data.obs.ncorrs)<res.fdr_5p_t, 'ncorrs'] = np.nan
+    #data.obs.loc[:,'ncorrs'] = data.obs.loc[:,'ncorrs']-mean_val
+     
     data.obs.loc[~data.uns['keptcells'+suffix], 'ncorrs'] = np.nan
-    #TODO: set cells with FDR>5% to have estimated cell scores of 0 versus nan?
 
     return np.array([np.sqrt(st.chi2.isf(res.p, 1))]), \
         np.array([res.p]), \
@@ -109,7 +121,7 @@ def cnav3(*args, **kwargs):
         None, \
         None, \
         data.obs.ncorrs.values, \
-        None
+        res.fdr_5p_t
 
 def cnav3_3steps(*args, **kwargs):
     return cnav3(*args, **kwargs, suffix='_3steps')

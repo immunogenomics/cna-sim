@@ -1,32 +1,32 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-#debug=1 #un-commenting this line will cause script to execute commands rather than submitting                                                                 
-dset="harmcca30" \
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting                                                              
+dset="harmcca20" \
 QCclusters="True" 
 
 for causalclust in \
     "leiden2" \
-    #"leiden1" \
-    #"leiden0p2" \
+    "leiden1" \
 
 do
     for noise in \
-	"0" \
-        "1" \
-        "2" \
-        "4" \
+	"2" \
+	#"3" \
+        #"1" \
+        #"0" \
+        #"4" \
 
     do
         for method in \
-	    "mixedmodel_nfm_npcs20" \
-	    "MASC_leiden0p2" \
-	    "MASC_leiden1" \
-	    "MASC_leiden2" \
+	    "cnav3" \
 	    "MASC_leiden5" \
+	    #"MASC_leiden1" \
+	    #"MASC_leiden2" \
+	    #"MASC_leiden0p2" \
 
         do
-            name="clusterspecificPC1/noise_$noise/causalclust_$causalclust/$method"
+            name="clusterspecificPC1_interp/noise_$noise/causalclust_$causalclust/$method"
             mkdir -p $datadir/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
@@ -39,9 +39,14 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q medium \
+                bsub -J $name[1-50] -q big \
                     -oo $datadir/$dset/$name/out/%I.out \
                     -eo $datadir/$dset/$name/out/%I.err \
+                    -R 'select[hname!=cn001]' \
+                    -R 'select[hname!=cn002]' \
+                    -R 'select[hname!=cn003]' \
+                    -R 'select[hname!=cn004]' \
+                    -R 'select[hname!=cn005]' \
                     "$command"
             else
                 LSB_JOBINDEX=1

@@ -26,6 +26,10 @@ sampleXmeta = data.uns['sampleXmeta']
 if args.dset[0:4]=="harm":
     data.obsm['X_pca'] = data.X
 
+# for CNAv1                                                                                                                                                                       
+if args.method =="mixedmodel_nfm_npcs20":
+    data.uns['sampleXnh_featureXpc'] = data.obsm['sampleXnh_featureXpc']
+
 # Simulate Phenotype
 np.random.seed(args.index)
 
@@ -58,7 +62,7 @@ res = simulation.simulate(
     None, #sampleXmeta[sample_covs].values,
     None, #No cell-level covariates
     true_cell_scores.T,
-    False, # Do NOT report cell scores
+    True, # Do NOT report cell scores
     False) # Do NOT filter phenotypes correlated with batch
 print(Ys.shape)
 res['phenotype'] = pheno_names

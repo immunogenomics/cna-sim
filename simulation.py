@@ -1,6 +1,7 @@
 import time, gc
 import numpy as np
 from methods import methods
+from sklearn.metrics.pairwise import cosine_similarity
 
 def onehot_batch_gen(data):
     num_batches = len(np.unique(data.obs.batch))
@@ -85,8 +86,10 @@ def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores,
 
         # run method
         f = getattr(methods, method)
+
         z, fwer, ntest, beta_val, beta_pval, est_cell_score, other = f(
             data, Y, B, C, T, s)
+
         zs.append(z)
         fwers.append(fwer)
         ntests.append(ntest)
@@ -95,8 +98,14 @@ def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores,
         est_cell_scores.append(est_cell_score)
         others.append(other)
         ix = ~np.isnan(est_cell_score)
+        
+        # Only included if cosine similarity is used
+        #true_cell_scores = true_cell_scores-true_cell_scores.mean(axis = 0)
+        
         interpretabilities.append(
             np.corrcoef(true_cell_scores.values[i].astype(np.float)[ix], est_cell_score[ix])[0,1])
+            #cosine_similarity(true_cell_scores.values[i].astype(np.float)[ix].reshape(1,-1),
+            #                  est_cell_score[ix].reshape(1,-1))[0][0])
 
         # print update for debugging
         nsig = (fwer <= 0.05).sum()
