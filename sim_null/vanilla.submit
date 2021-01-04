@@ -1,19 +1,12 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-#dset="mrna.N=63_C800"
-dset="harmcca20_withNAM"
-njobs=10
-# debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+dset="harmcca20_newcna"
+njobs=20
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for method in \
-    "cnav3" \
-    "cnav3_3steps" \
-    # "mixedmodel_nfm_npcs20" \
-    # "mixedmodel_nfm_npcs30" \
-    # "mixedmodel_nfm_npcs40" \
-    # "mixedmodel_nfm_npcs50" \
-    #"MASC_leiden2" \ for this one set njobs to 100 and nsim to 10
+    "CNAfast" \
 
 do
     name="null_vanilla/$method"
@@ -22,7 +15,7 @@ do
             --simname $name \
             --dset $dset \
             --phenotype age \
-            --nsim 100 \
+            --nsim 50 \
             --method $method \
             --index \$LSB_JOBINDEX"
     echo $command

@@ -106,3 +106,6 @@ def CNA(*args, **kwargs):
 
 def CNAfast(*args, **kwargs):
     return CNA(*args, local_test=False, **kwargs)
+
+def CNAfast_detailed(*args, **kwargs):
+    return CNA(*args, local_test=False, Nnull=10000, **kwargs)
