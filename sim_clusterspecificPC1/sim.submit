@@ -1,7 +1,7 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-dset="harmcca20_newcna"
+dset="harmcca20"
 QCclusters="True" 
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
