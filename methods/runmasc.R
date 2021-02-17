@@ -6,7 +6,6 @@ myMASC <- function(dataset, cluster, contrast, random_effects = NULL, fixed_effe
   if (is.null(weights)) {
       weights <- rep(1, nrow(dataset))
   }
-
   # Generate design matrix from cluster assignments
   cluster <- as.character(cluster)
   designmat <- model.matrix(~ cluster + 0, data.frame(cluster = cluster))
@@ -107,15 +106,20 @@ if(length(args) > 1) {
 } else {
     fixed = c()
 }
-
 df = read.table(args[1], header=TRUE)
+
 df$cluster <- as.factor(df$cluster)
 
 library(lme4)
+if(length(unique(df$batch))==1){
+    random_effect_names = c("id")
+}else{
+    random_effect_names = c("id", "batch")
+}
 if(length(fixed) > 0) {
     result = myMASC(data=df, cluster=df$cluster,
                 contrast = "phenotype",
-                random_effects = c("id", "batch"),
+                random_effects = random_effect_names,
                 fixed_effects = fixed,
                 weights = df$weight,
                 verbose = TRUE,
@@ -123,7 +127,7 @@ if(length(fixed) > 0) {
 } else {
     result = myMASC(data=df, cluster=df$cluster,
                 contrast = "phenotype",
-                random_effects = c("id", "batch"),
+                random_effects = random_effect_names,
                 weights = df$weight,
                 verbose = TRUE,
                 first_only = TRUE)

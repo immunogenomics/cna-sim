@@ -41,15 +41,15 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         temp = tempfile.NamedTemporaryFile(mode='w+t')
         df_w.to_csv(temp, sep='\t', index=False)
         temp.flush()
-
+        
         #execute MASC
         command = 'Rscript /data/srlab/lrumker/MCSC_Project/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' +' '.join(othercols)
-        #command = 'Rscript /data/srlab1/yakir/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' + \
-        #    ' '.join(othercols)
+
         stream = os.popen(command)
         for line in stream:
             if line == '***RESULTS\n':
                 break
+        
         result = pd.read_csv(stream, delim_whitespace=True)
         temp.close()
 
