@@ -1,7 +1,7 @@
 import time, gc
 import numpy as np
 from methods import methods
-from sklearn.metrics.pairwise import cosine_similarity
+from argparse import Namespace
 
 def onehot_batch_gen(data):
     num_batches = len(np.unique(data.obs.batch))
@@ -22,11 +22,10 @@ def phenos_uncorr_with_batch(data, cell_scores, cor_thresh):
             final_set.append(i_pheno)
     return final_set
 
+# Returns the labels for clusters that pass checks for required sample representation
+# and lack of correlation with batch
 def discard_bad_clusters(data, cluster_res, min_cells_per_sample, min_samples_per_cluster,
                          clust_batch_cor_thresh):
-    # Returns the labels for clusters that pass checks for required sample representation
-    # and lack of correlation with batch
-
     # Check clusters for minimum sample representation
     keep_clust = []
     for i_cluster in np.unique(data.obs[cluster_res]):
@@ -61,59 +60,39 @@ def add_noise(Ys, noiselevels): #Ys is assumed to have one row per phenotype
     noise = np.random.randn(*Ys.shape) * noiselevels[:,None]
     return Ys + noise
 
-def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores, 
-             report_cell_scores = True, QC_phenotypes = False):
+def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores,
+             report_cell_scores=True, QC_phenotypes=False):
     if Ts is None:
         Ts = np.array([None]*len(Ys))
     elif len(Ts.shape) == 2:
         Ts = np.array([Ts]*len(Ys))
 
-    zs, fwers, ntests, beta_vals, beta_pvals, est_cell_scores, others = \
-        list(), list(), list(), list(), list(), list(), list()
-    interpretabilities = list()
-
     t0 = time.time()
-    
     if QC_phenotypes:
         print(true_cell_scores.index)
-        retain_phenos = phenos_uncorr_with_batch(data, true_cell_scores.to_numpy(dtype = "float64").T, 0.3) # Correlation with batch
+        retain_phenos = phenos_uncorr_with_batch(
+            data, true_cell_scores.to_numpy(dtype="float64").T, 0.3) # Correlation with batch
         true_cell_scores = true_cell_scores.iloc[retain_phenos,:]
         Ys = Ys[retain_phenos,:]
-            
-    for i, (Y, T) in enumerate(zip(Ys, Ts)):
-        print('===', i, ':', time.time() - t0)
+
+    for i, (Y, T, (pheno, truth)) in enumerate(zip(Ys, Ts, true_cell_scores.iterrows())):
+        print('===', i, pheno, ':', time.time() - t0)
         print(Y.shape)
 
         # run method
         f = getattr(methods, method)
+        p, cell_scores, cell_sigs, other = f(data, Y, B, C, T, s)
 
-        z, fwer, ntest, beta_val, beta_pval, est_cell_score, other = f(
-            data, Y, B, C, T, s)
+        ix = ~np.isnan(cell_scores)
+        interp = \
+            np.corrcoef(
+                truth.astype(float)[ix], cell_scores[ix]
+                )[0,1]
 
-        zs.append(z)
-        fwers.append(fwer)
-        ntests.append(ntest)
-        beta_vals.append(beta_val)
-        beta_pvals.append(beta_pval)
-        est_cell_scores.append(est_cell_score)
-        others.append(other)
-        ix = ~np.isnan(est_cell_score)
-        
-        # Only included if cosine similarity is used
-        #true_cell_scores = true_cell_scores-true_cell_scores.mean(axis = 0)
-        
-        interpretabilities.append(
-            np.corrcoef(true_cell_scores.values[i].astype(np.float)[ix], est_cell_score[ix])[0,1])
-            #cosine_similarity(true_cell_scores.values[i].astype(np.float)[ix].reshape(1,-1),
-            #                  est_cell_score[ix].reshape(1,-1))[0][0])
-
-        # print update for debugging
-        nsig = (fwer <= 0.05).sum()
-        print('min fwer:', fwer.min())
-        if nsig > 0:
-            print('***nsig:', nsig)
-        else:
-            print('nsig:', nsig)
+        print('p:', p)
+        if p < 0.05:
+            print('***sig')
+        print('interp:', interp)
 
         # print memory usage
         import os
@@ -122,25 +101,18 @@ def simulate(method, data, Ys, B, C, Ts, s, true_cell_scores,
         print('mem usage:', process.memory_info().rss / 1e6, 'MB')
 
         gc.collect()
-    if report_cell_scores:
-            return {'zs':np.array(zs),
-            'fwers':np.array(fwers),
-            'ntests':np.array(ntests),
-            'beta_vals':np.array(beta_vals),
-            'beta_pvals':np.array(beta_pvals),
-            'est_cell_scores':np.array(est_cell_scores),
-            'true_cell_scores':true_cell_scores,
-            'others':np.array(others),
-            'interpretabilities':np.array(interpretabilities)
-            }
-    else:
-        return {'zs':np.array(zs),
-            'fwers':np.array(fwers),
-            'ntests':np.array(ntests),
-            'beta_vals':np.array(beta_vals),
-            'beta_pvals':np.array(beta_pvals),
-            'est_cell_scores': None,
-            'true_cell_scores': None,
-            'others':np.array(others),
-            'interpretabilities':np.array(interpretabilities)
-            }
+        if report_cell_scores:
+            yield Namespace(**{'pheno':pheno,
+                        'i':i,
+                        'p':p,
+                        'truth':truth,
+                        'cell_scores':cell_scores,
+                        'cell_sigs':cell_sigs,
+                        'interp':interp,
+                        'other':other})
+        else:
+            yield Namespace(**{'pheno':pheno,
+                        'i':i,
+                        'p':p,
+                        'interp':interp,
+                        'other':other})

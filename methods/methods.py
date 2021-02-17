@@ -1,4 +1,4 @@
-import mcsc as mc
+import cna
 import numpy as np
 import scipy.stats as st
 
@@ -30,7 +30,8 @@ def _MASC(data, Y, B, C, T, s, clustertype):
     t0 = time()
     for c in sorted(df.m_cluster.unique().astype(int)):
         print(time()-t0, ': cluster', c, 'of', len(df.m_cluster.unique()))
-        df['cluster'] = df.m_cluster == str(c)
+        df['cluster'] = df.m_cluster.astype(str) == str(c)
+        print(df.cluster.sum(), 'cells in cluster', c)
         if np.sum(df['cluster'])==1:
             continue
         df_w = df.groupby(['id', 'batch', 'phenotype', 'cluster']+othercols, observed=True
@@ -41,15 +42,14 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         temp = tempfile.NamedTemporaryFile(mode='w+t')
         df_w.to_csv(temp, sep='\t', index=False)
         temp.flush()
-        
-        #execute MASC
-        command = 'Rscript /data/srlab/lrumker/MCSC_Project/mcsc-sim/methods/runmasc.R ' + temp.name + ' ' +' '.join(othercols)
 
+        #execute MASC
+        mascscript = os.path.dirname(__file__) + '/runmasc.R'
+        command = 'Rscript '+ mascscript + ' ' + temp.name + ' ' +' '.join(othercols)
         stream = os.popen(command)
         for line in stream:
             if line == '***RESULTS\n':
                 break
-        
         result = pd.read_csv(stream, delim_whitespace=True)
         temp.close()
 
@@ -62,20 +62,16 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         betas.append(-result['model.beta'].values[0]) # NOTE SIGN FLIP -- because runmasc
                                                     # reports beta for the cells not in the
                                                     # cluster
-        
-    cell_scores = np.zeros(len(data))
-    for c, p, beta in zip(sorted(df.m_cluster.unique().astype(int)), ps, betas):
-        if p * len(ps) <= 0.05:
-            cell_scores[df.m_cluster.astype(int) == c] = beta
 
-    # If using cosine similarity for interpretability
-    #cell_scores = cell_scores-np.mean(cell_scores)
-            
+    cell_scores = np.zeros(len(data))
+    cell_sigs = np.zeros(len(data))
+    for c, p, beta in zip(sorted(df.m_cluster.unique().astype(int)), ps, betas):
+        cell_scores[df.m_cluster.astype(int) == c] = beta
+        cell_sigs[df.m_cluster.astype(int) == c] = p
     ps = np.array(ps)
-    fwers = ps * len(ps)
-    zs = np.sqrt(st.chi2.isf(ps, 1))
     betas = np.array(betas)
-    return zs, fwers, len(zs), betas, ps, cell_scores, None
+
+    return np.min(ps)*len(ps), cell_scores, cell_sigs < 0.05/len(ps), (betas, ps)
 def MASC_leiden0p2(*args):
     return _MASC(*args, clustertype='leiden0p2')
 def MASC_leiden1(*args):
@@ -84,84 +80,32 @@ def MASC_leiden2(*args):
     return _MASC(*args, clustertype='leiden2')
 def MASC_leiden5(*args):
     return _MASC(*args, clustertype='leiden5')
-def MASC_dleiden0p2(*args):
-    return _MASC(*args, clustertype='dleiden0p2')
-def MASC_dleiden1(*args):
-    return _MASC(*args, clustertype='dleiden1')
-def MASC_dleiden2(*args):
-    return _MASC(*args, clustertype='dleiden2')
-def MASC_dleiden5(*args):
-    return _MASC(*args, clustertype='dleiden5')
 
+# return p, cell_scores, cell_significance, (betas, ps)
 ########################################
-def cnav3(*args, **kwargs):
+def CNA(*args, **kwargs):
     data, Y, B, C, T, s = args
     if 'suffix' in kwargs:
         suffix = kwargs['suffix']
     else:
         suffix = ''
 
-    res = mc.tl._pfm.association(data, Y, B, T, **kwargs)
-    
-    data.obs.loc[data.uns['keptcells'+suffix], 'ncorrs'] = res.ncorrs
-    
-    ### Sets cells with FDR>5% to have estimated cell scores of 0, for correlation comparison
-    #data.obs.loc[abs(data.obs.ncorrs)<res.fdr_5p_t, 'ncorrs'] = 0  
-    
-    ### Sets cells with FDR>5% to have estimated cell scores of NaN, for cosine similarity comparison
-    #mean_val = np.nanmean(data.obs.ncorrs.values) 
-    #data.obs.loc[abs(data.obs.ncorrs)<res.fdr_5p_t, 'ncorrs'] = np.nan
-    #data.obs.loc[:,'ncorrs'] = data.obs.loc[:,'ncorrs']-mean_val
-     
-    data.obs.loc[~data.uns['keptcells'+suffix], 'ncorrs'] = np.nan
+    res = cna.tl.association(data, Y, batches=B, covs=T, **kwargs)
+    data.obs.loc[res.kept, 'ncorrs'] = res.ncorrs
+    data.obs.loc[~res.kept, 'ncorrs'] = np.nan
+    cell_scores = data.obs.ncorrs.copy().values
 
-    return np.array([np.sqrt(st.chi2.isf(res.p, 1))]), \
-        np.array([res.p]), \
-        1, \
-        None, \
-        None, \
-        data.obs.ncorrs.values, \
-        res.fdr_5p_t
+    if res.fdr_5p_t is None:
+        res.fdr_5p_t = np.inf
+    print('fdr threshold is', res.fdr_5p_t)
 
-def cnav3_3steps(*args, **kwargs):
-    return cnav3(*args, **kwargs, suffix='_3steps')
+    return res.p, \
+        cell_scores, \
+        np.abs(cell_scores) > res.fdr_5p_t, \
+        (res.fdr_5p_t, res.fdr_10p_t)
 
-########################################
-def _mixedmodel(*args, **kwargs):
-    def diffuse_phenotype(data, s, nsteps=3):
-        a = data.uns['neighbors']['connectivities']
-        colsums = np.array(a.sum(axis=0)).flatten() + 1
+def CNAfast(*args, **kwargs):
+    return CNA(*args, local_test=False, **kwargs)
 
-        for i in range(nsteps):
-            s = a.dot(s/colsums) + s/colsums
-        return s
-
-    data, Y, B, C, T, s = args
-    res = mc.tl._pfm.mixedmodel(data, Y, B, T, **kwargs)
-    cell_scores = diffuse_phenotype(data, res.beta)
-
-    return np.array([np.sqrt(st.chi2.isf(res.p, 1))]), \
-        np.array([res.p]), \
-        1, \
-        res.gamma, \
-        res.gamma_p, \
-        res.beta, \
-        cell_scores
-
-def mixedmodel_nfm_npcs10(*args):
-    return _mixedmodel(*args, repname='sampleXnh', npcs=10)
-def mixedmodel_nfm_npcs20(*args):
-    return _mixedmodel(*args, repname='sampleXnh', npcs=20)
-def mixedmodel_nfm_npcs30(*args):
-    return _mixedmodel(*args, repname='sampleXnh', npcs=30)
-def mixedmodel_nfm_npcs40(*args):
-    return _mixedmodel(*args, repname='sampleXnh', npcs=40)
-def mixedmodel_nfm_npcs50(*args):
-    return _mixedmodel(*args, repname='sampleXnh', npcs=50)
-
-def mixedmodel_cfm_leiden2(*args):
-    return _mixedmodel(*args, repname='sampleXleiden2', npcs=20)
-def mixedmodel_cfm_leiden5(*args):
-    return _mixedmodel(*args, repname='sampleXleiden5', npcs=20)
-def mixedmodel_cfm_leiden10(*args):
-    return _mixedmodel(*args, repname='sampleXleiden10', npcs=20)
+def CNAfast_detailed(*args, **kwargs):
+    return CNA(*args, local_test=False, Nnull=10000, **kwargs)

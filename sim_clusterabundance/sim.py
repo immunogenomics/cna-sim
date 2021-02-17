@@ -1,7 +1,7 @@
 import pickle, argparse
 import numpy as np
 import pandas as pd
-import scanpy as sc
+import cna
 import paths, simulation
 
 # Parse Arguments
@@ -18,17 +18,13 @@ print('\n\n****')
 print(args)
 print('****\n\n')
 
-## Load Data                                                                                                                                                                    
-data = sc.read(paths.tbru_h5ad + args.dset +'.h5ad', backed = "r")
-sampleXmeta = data.uns['sampleXmeta']
+## Load Data
+data = cna.read(paths.tbru_h5ad + args.dset +'.h5ad')
+sampleXmeta = data.samplem
 
-### If harmonized                                                                                                                                                   
+### If harmonized
 if args.dset[0:4]=="harm":
     data.obsm['X_pca'] = data.X
-
-# for CNAv1                                                                                                                                                                       
-if args.method =="mixedmodel_nfm_npcs20":
-    data.uns['sampleXnh_featureXpc'] = data.obsm['sampleXnh_featureXpc']
 
 # Simulate Phenotype
 np.random.seed(args.index)
@@ -51,9 +47,9 @@ print(Ys.shape)
 
 # Add noise
 Ys = simulation.add_noise(Ys, args.noise_level)
-    
+
 # Do analysis
-res = simulation.simulate(
+for i, res in enumerate(simulation.simulate(
     args.method,
     data,
     Ys.values,
@@ -62,13 +58,12 @@ res = simulation.simulate(
     None, #sampleXmeta[sample_covs].values,
     None, #No cell-level covariates
     true_cell_scores.T,
-    True, # Do NOT report cell scores
-    False) # Do NOT filter phenotypes correlated with batch
-print(Ys.shape)
-res['phenotype'] = pheno_names
+    report_cell_scores=False,
+    QC_phenotypes=False)):
 
-# write results
-outfile = paths.simresults(args.dset, args.simname) + str(args.index) + '.p'
-print('writing', outfile)
-pickle.dump(res, open(outfile, 'wb'))
-print('done')
+    # add phenotype id
+    vars(res)['id'] = str(args.index) + '.' + res.pheno
+
+    # write results
+    outfile = '{}{}.{}.p'.format(paths.simresults(args.dset, args.simname), args.index, i)
+    pickle.dump(res, open(outfile, 'wb'))
