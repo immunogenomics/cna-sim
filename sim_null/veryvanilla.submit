@@ -1,0 +1,33 @@
+#!/bin/bash
+
+datadir="/data/srlab1/laurie-yakir/tbru.sim"
+dset="harmcca20"
+njobs=20
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+
+for method in \
+    "CNAfast" \
+
+do
+    name="null_veryvanilla/$method"
+    mkdir -p $datadir/$dset/$name/out
+    command="python -u veryvanilla.py \
+            --simname $name \
+            --dset $dset \
+            --phenotype age \
+            --nsim 50 \
+            --method $method \
+            --index \$LSB_JOBINDEX"
+    echo $command
+    if [ -z "$debug" ]
+    then
+        bsub -J $name[1-$njobs] -q short \
+            -oo $datadir/$dset/$name/out/%I.out \
+            -eo $datadir/$dset/$name/out/%I.err \
+            "$command"
+    else
+        LSB_JOBINDEX=1
+        eval $command
+        exit
+    fi
+done
