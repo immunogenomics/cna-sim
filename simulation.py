@@ -17,7 +17,7 @@ def phenos_uncorr_with_batch(data, cell_scores, cor_thresh):
     onehot_batch = onehot_batch_gen(data)
     final_set = []
     for i_pheno in np.arange(cell_scores.shape[1]):
-        pheno_cor_wBatch = np.corrcoef(np.hstack((cell_scores[:,i_pheno:(i_pheno+1)], onehot_batch)), rowvar = False)[0,1:-1]
+        pheno_cor_wBatch = np.abs(np.corrcoef(np.hstack((cell_scores[:,i_pheno:(i_pheno+1)], onehot_batch)), rowvar = False)[0,1:-1])
         if np.sum(pheno_cor_wBatch > cor_thresh) ==0:
             final_set.append(i_pheno)
     return final_set
