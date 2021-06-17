@@ -1,0 +1,59 @@
+#!/bin/bash
+
+datadir="/data/srlab1/laurie-yakir/tbru.sim"
+dset="harmcca20_B8"
+QCclusters="True"
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+
+for causalclust in \
+    "leiden2" \
+
+do
+    for noise in \
+	"1.11" \
+        "1.25" \
+        "1.43" \
+        "1.67" \
+        "2" \
+        "2.5" \
+        "3.33" \
+        "5" \
+        "10" \
+        "99"
+
+    do
+        for method in \
+	    "CNAfast" \
+	    "meld_compare" \
+           	    
+        do
+            name="meld_comparison/noise_$noise/causalclust_$causalclust/$method"
+            mkdir -p $datadir/$dset/$name/out
+            command="python -u sim.py \
+                    --simname $name \
+                    --dset $dset \
+                    --method $method \
+                    --causal-clustering $causalclust \
+                    --noise-level $noise \
+                    --index \$LSB_JOBINDEX \
+                    --QCclusters $QCclusters"
+            echo $command
+            if [ -z "$debug" ]
+            then
+                bsub -J $name[1-10] -q medium \
+                    -oo $datadir/$dset/$name/out/%I.out \
+                    -eo $datadir/$dset/$name/out/%I.err \
+                    -R 'select[hname!=cn001]' \
+                    -R 'select[hname!=cn002]' \
+                    -R 'select[hname!=cn003]' \
+                    -R 'select[hname!=cn004]' \
+                    -R 'select[hname!=cn005]' \
+                    "$command"
+            else
+                LSB_JOBINDEX=1
+                eval $command
+                exit
+            fi
+        done
+    done
+done

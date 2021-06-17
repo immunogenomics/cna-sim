@@ -87,7 +87,7 @@ print('computing neighborhood abundances and PCA')
 cna.tl.nam(data_, batches=d.samplem.batch, force_recompute=True)
 
 # clustering at different resolutions
-for res in [2]:
+for res in [0.2,1,2,5]:
     print('clustering at resolution', res)
     n = 'leiden'+str(res).replace('.','p')
     sc.tl.leiden(data_, resolution=res, key_added=n)
