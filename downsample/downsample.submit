@@ -1,35 +1,33 @@
 #!/bin/bash
 
+dset="harmcca20"
+dirname="/data/srlab1/laurie-yakir/tbru.real/2.munged"
+#debug=1
+
 for B in \
     "4" \
     "8" \
-    "16" \
-    "30" \
+    "12" \
+    "18"
 do
-    command="python -u \
-        ./downsample.py
-            command="python -u sim.py \
-                    --simname $name \
-                    --dset $dset \
-                    --method $method \
-                    --causal-clustering $causalclust \
-                    --noise-level $noise \
-                    --index \$LSB_JOBINDEX \
-                    --QCclusters $QCclusters"
-            echo $command
-            if [ -z "$debug" ]
-            then
-                bsub -J $name[1-10] -q medium \
-                    -oo $datadir/$dset/$name/out/%I.out \
-                    -eo $datadir/$dset/$name/out/%I.err \
-                    -R 'select[hname!=cn001]' \
-                    -R 'select[hname!=cn002]' \
-                    -R 'select[hname!=cn003]' \
-                    -R 'select[hname!=cn004]' \
-                    -R 'select[hname!=cn005]' \
-                    "$command"
-            else
-                LSB_JOBINDEX=1
-                eval $command
-                exit
-            fi
+    command="python -u downsample.py \
+                    --Nbatches $B \
+                    --inname $dset \
+                    --outname ${dset}_B$B"
+    echo $command
+    if [ -z "$debug" ]
+    then
+        bsub -J downsample$B -q medium \
+            -oo out/$B.out \
+            -eo out/$B.err \
+            -R 'select[hname!=cn001]' \
+            -R 'select[hname!=cn002]' \
+            -R 'select[hname!=cn003]' \
+            -R 'select[hname!=cn004]' \
+            -R 'select[hname!=cn005]' \
+            "$command"
+    else
+        eval $command
+        exit
+    fi
+done
