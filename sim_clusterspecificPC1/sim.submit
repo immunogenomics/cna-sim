@@ -26,11 +26,12 @@ do
 
     do
         for method in \
-            "CNAfast" \
-            "MASC_leiden0p2" \
-            "MASC_leiden2" \
-            "MASC_leiden1" \
-            "MASC_leiden5" \
+	    "CNAfast_permute_all" \
+            #"CNAfast" \
+            #"MASC_leiden0p2" \
+            #"MASC_leiden2" \
+            #"MASC_leiden1" \
+            #"MASC_leiden5" \
 
         do
             name="clusterspecificPC1/noise_$noise/causalclust_$causalclust/$method"

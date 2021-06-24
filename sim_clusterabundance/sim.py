@@ -19,7 +19,7 @@ print(args)
 print('****\n\n')
 
 ## Load Data
-data = cna.read(paths.tbru_h5ad + args.dset +'.h5ad')
+data = cna.read(paths.tbru_h5ad + args.dset +'.h5ad', force_recompute = True)
 sampleXmeta = data.samplem
 
 ### If harmonized

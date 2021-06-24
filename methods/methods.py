@@ -90,7 +90,7 @@ def CNA(*args, **kwargs):
     else:
         suffix = ''
 
-    res = cna.tl.association(data, Y, batches=B, covs=T, **kwargs)
+    res = cna.tl.association(data, Y, batches=B, covs=T, force_recompute = True, **kwargs)
     data.obs.loc[res.kept, 'ncorrs'] = res.ncorrs
     data.obs.loc[~res.kept, 'ncorrs'] = np.nan
     cell_scores = data.obs.ncorrs.copy().values
@@ -109,6 +109,9 @@ def CNAfast(*args, **kwargs):
 
 def CNAfast_detailed(*args, **kwargs):
     return CNA(*args, local_test=False, Nnull=10000, **kwargs)
+
+def CNAfast_permute_all(*args, **kwargs):
+    return CNA(*args, local_test=False, force_permute_all=True, **kwargs)
 
 # return p, cell_scores, cell_significance, (betas, ps)                                                     
 ########################################   

@@ -70,7 +70,7 @@ print('data shape', data_.shape)
 
 # assign sampleXmeta and remove other metadata
 data_.uns['sampleXmeta'] = sampleXmeta_.drop(sampleXmeta_.columns[42:], axis=1)
-data_.samplem['batch'] = 1
+data_.samplem['batch'] = sampleXmeta_.batch
 data_.samplem['C'] = 0
 data_.samplem.C = data_.obs.id.value_counts()
 data_.obsm.pop('X_pca', None)
