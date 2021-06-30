@@ -2,13 +2,13 @@
 
 dset="harmcca20"
 dirname="/data/srlab1/laurie-yakir/tbru.real/2.munged"
-#debug=1
+debug=1
 
 for B in \
-    "4" \
     "8" \
     "12" \
-    "18"
+    "18" \
+    #"4"
 do
     command="python -u downsample.py \
                     --Nbatches $B \

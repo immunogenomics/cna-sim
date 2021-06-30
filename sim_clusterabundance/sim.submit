@@ -1,7 +1,7 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-dset="harmcca20"
+dset="harmcca20_B12"
 QCclusters="True"
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
@@ -24,8 +24,8 @@ do
 
     do
         for method in \
-	    "CNAfast_permute_all"\
-            #"CNAfast" \
+	    "CNAfast"\
+            #"CNAfast_permute_all" \
             #"MASC_leiden0p2" \
             #"MASC_leiden1" \
             #"MASC_leiden2" \

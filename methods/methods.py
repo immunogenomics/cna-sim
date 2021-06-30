@@ -90,7 +90,7 @@ def CNA(*args, **kwargs):
     else:
         suffix = ''
 
-    res = cna.tl.association(data, Y, batches=B, covs=T, force_recompute = True, **kwargs)
+    res = cna.tl.association(data, Y, batches=B, covs=T,  **kwargs)
     data.obs.loc[res.kept, 'ncorrs'] = res.ncorrs
     data.obs.loc[~res.kept, 'ncorrs'] = np.nan
     cell_scores = data.obs.ncorrs.copy().values

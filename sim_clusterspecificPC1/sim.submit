@@ -1,14 +1,14 @@
 #!/bin/bash
 
 datadir="/data/srlab1/laurie-yakir/tbru.sim"
-dset="harmcca20"
+dset="harmcca20_B12"
 QCclusters="True" 
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for causalclust in \
-    "leiden0p2" \
     "leiden1" \
-    "leiden2" \
+    #"leiden0p2" \
+    #"leiden2" \
 
 do
     for noise in \
@@ -26,8 +26,8 @@ do
 
     do
         for method in \
-	    "CNAfast_permute_all" \
-            #"CNAfast" \
+	    "CNAfast" \
+            #"CNAfast_permute_all" \
             #"MASC_leiden0p2" \
             #"MASC_leiden2" \
             #"MASC_leiden1" \
