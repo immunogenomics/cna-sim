@@ -2,7 +2,8 @@
 
 dset="harmcca20"
 dirname="/data/srlab1/laurie-yakir/tbru.real/2.munged"
-debug=1
+seed=42
+#debug=1
 
 for B in \
     "8" \
@@ -13,7 +14,8 @@ do
     command="python -u downsample.py \
                     --Nbatches $B \
                     --inname $dset \
-                    --outname ${dset}_B$B"
+                    --outname ${dset}_B${B}s$seed\
+                    --seed $seed"
     echo $command
     if [ -z "$debug" ]
     then
