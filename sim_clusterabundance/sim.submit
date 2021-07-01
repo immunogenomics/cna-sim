@@ -1,9 +1,11 @@
 #!/bin/bash
 
-datadir="/data/srlab1/laurie-yakir/tbru.sim"
-dset="harmcca20_B12"
+simdata="/data/srlab1/laurie-yakir/sim"
 QCclusters="True"
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+
+#dset="tbru"
+dset="sepsis_pbmc"
 
 for causalclust in \
     "leiden2" \
@@ -25,15 +27,14 @@ do
     do
         for method in \
 	    "CNAfast"\
-            #"CNAfast_permute_all" \
-            #"MASC_leiden0p2" \
-            #"MASC_leiden1" \
-            #"MASC_leiden2" \
-            #"MASC_leiden5" \
+        "MASC_leiden0p2" \
+        "MASC_leiden1" \
+        "MASC_leiden2" \
+        "MASC_leiden5" \
 	    
         do
             name="clusterabundance/noise_$noise/causalclust_$causalclust/$method"
-            mkdir -p $datadir/$dset/$name/out
+            mkdir -p $simdata/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
                     --dset $dset \
@@ -46,8 +47,8 @@ do
             if [ -z "$debug" ]
             then
                 bsub -J $name[1-10] -q medium \
-                    -oo $datadir/$dset/$name/out/%I.out \
-                    -eo $datadir/$dset/$name/out/%I.err \
+                    -oo $simdata/$dset/$name/out/%I.out \
+                    -eo $simdata/$dset/$name/out/%I.err \
                     -R 'select[hname!=cn001]' \
                     -R 'select[hname!=cn002]' \
                     -R 'select[hname!=cn003]' \

@@ -19,7 +19,7 @@ print(args)
 print('****\n\n')
 
 ## Load Data
-data = cna.read(paths.tbru_h5ad + args.dset +'.h5ad', force_recompute = True)
+data = cna.read(paths.simdata + args.dset +'.h5ad', force_recompute = True)
 sampleXmeta = data.samplem
 
 ### If harmonized
@@ -32,8 +32,8 @@ np.random.seed(args.index)
 ## Compute true cell scores
 true_cell_scores = pd.get_dummies(data.obs[args.causal_clustering])
 if args.QCclusters:
-     retain_clusters = simulation.discard_bad_clusters(data, args.causal_clustering, 
-                                                     min_cells_per_sample = 50, 
+     retain_clusters = simulation.discard_bad_clusters(data, args.causal_clustering,
+                                                     min_cells_per_sample = 50,
                                                      min_samples_per_cluster = 10,
                                                      clust_batch_cor_thresh = 0.25)
      true_cell_scores = true_cell_scores.iloc[:,np.where([name in retain_clusters for name in true_cell_scores.columns.values.astype(str)])[0]]

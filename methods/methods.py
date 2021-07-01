@@ -115,20 +115,20 @@ def CNAfast_permute_all(*args, **kwargs):
 
 # return p, cell_scores, cell_significance, (betas, ps)                                                     
 ########################################   
-import meld
+#import meld
 
-def meld_compare(*args, **kwargs):
-    data, Y, B, C, T, s = args
-    if 'suffix' in kwargs:
-        suffix = kwargs['suffix']
-    else:
-        suffix = ''
-
-    print(Y)
-    meld_op = meld.MELD()
-    sample_densities = meld_op.fit_transform(data.X, # this is pca for harmonized CCA data  
-                                             sample_labels=data.obs['donor'].values)
-    sample_densities = sample_densities.values
-    sample_likelihoods = sample_densities/sample_densities.sum(axis=1)[:,None]
-    cell_scores = sample_likelihoods[:,Y].mean(axis=1)
-    return 1, cell_scores, np.repeat(1, len(cell_scores)), (None, None)
+#def meld_compare(*args, **kwargs):
+#    data, Y, B, C, T, s = args
+#    if 'suffix' in kwargs:
+#        suffix = kwargs['suffix']
+#    else:
+#        suffix = ''
+#
+#    print(Y)
+#    meld_op = meld.MELD()
+#    sample_densities = meld_op.fit_transform(data.X, # this is pca for harmonized CCA data  
+#                                             sample_labels=data.obs['donor'].values)
+#    sample_densities = sample_densities.values
+#    sample_likelihoods = sample_densities/sample_densities.sum(axis=1)[:,None]
+#    cell_scores = sample_likelihoods[:,Y].mean(axis=1)
+#    return 1, cell_scores, np.repeat(1, len(cell_scores)), (None, None)
