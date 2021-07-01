@@ -1,8 +1,10 @@
 #!/bin/bash
 
-datadir="/data/srlab1/laurie-yakir/tbru.sim"
-dset="harmcca20_B12"
-#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+simdata="/data/srlab1/laurie-yakir/sim"
+debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+
+#dset="harmcca20_B12"
+dset="sepsis_pbmc"
 
 for noise in \
     "1" \
@@ -28,7 +30,7 @@ do
        
     do
         name="geneexpPCs/noise_$noise/$method"
-        mkdir -p $datadir/$dset/$name/out
+        mkdir -p $simdata/$dset/$name/out
         command="python -u sim.py \
                 --simname $name \
                 --dset $dset \
@@ -39,8 +41,8 @@ do
         if [ -z "$debug" ]
         then
             bsub -J $name[1-10] -q medium \
-                -oo $datadir/$dset/$name/out/%I.out \
-                -eo $datadir/$dset/$name/out/%I.err \
+                -oo $simdata/$dset/$name/out/%I.out \
+                -eo $simdata/$dset/$name/out/%I.err \
                 -R 'select[hname!=cn001]' \
                 -R 'select[hname!=cn002]' \
                 -R 'select[hname!=cn003]' \

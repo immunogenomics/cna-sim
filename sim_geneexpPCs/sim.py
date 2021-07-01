@@ -18,8 +18,8 @@ print(args)
 print('****\n\n')
 
 # load dataset
-print(paths.tbru_h5ad)
-data = cna.read(paths.tbru_h5ad + args.dset +'.h5ad')
+print(paths.simdata)
+data = cna.read(paths.simdata + args.dset +'.h5ad')
 sampleXmeta = data.samplem
 if args.dset[0:4]=="harm":
     data.obsm['X_pca'] = data.X
