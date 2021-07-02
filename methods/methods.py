@@ -46,6 +46,7 @@ def _MASC(data, Y, B, C, T, s, clustertype):
         #execute MASC
         mascscript = os.path.dirname(__file__) + '/runmasc.R'
         command = 'Rscript '+ mascscript + ' ' + temp.name + ' ' +' '.join(othercols)
+        print('running', command)
         stream = os.popen(command)
         for line in stream:
             if line == '***RESULTS\n':

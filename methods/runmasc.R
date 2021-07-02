@@ -112,9 +112,17 @@ df$cluster <- as.factor(df$cluster)
 
 library(lme4)
 if(length(unique(df$batch))==1){
-    random_effect_names = c("id")
+    if(length(unique(df$id))==1){
+        random_effect_names = NULL
+    }else{
+        random_effect_names = c("id")
+    }
 }else{
-    random_effect_names = c("id", "batch")
+    if(length(unique(df$id))==1){
+        random_effect_names = c("batch")
+    }else{
+        random_effect_names = c("id", "batch")
+    }
 }
 if(length(fixed) > 0) {
     result = myMASC(data=df, cluster=df$cluster,
