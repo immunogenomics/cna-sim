@@ -1,7 +1,7 @@
 #!/bin/bash
 
 simdata="/data/srlab1/laurie-yakir/sim"
-debug=1 #un-commenting this line will cause script to execute commands rather than submitting
+#debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 #dset="harmcca20_B12"
 dset="sepsis_pbmc"
@@ -22,11 +22,10 @@ for noise in \
 do
     for method in \
 	"CNAfast" \
-        #"CNAfast_permute_all" \
-        #"MASC_leiden0p2" \
-        #"MASC_leiden2" \
-        #"MASC_leiden1" \
-        #"MASC_leiden5" \
+    "MASC_leiden0p2" \
+    "MASC_leiden2" \
+    "MASC_leiden1" \
+    "MASC_leiden5" \
        
     do
         name="geneexpPCs/noise_$noise/$method"
