@@ -8,7 +8,7 @@ import argparse
 
 # argument parsing
 parser = argparse.ArgumentParser()
-parser.add_argument('--Nbatches', type=int, default=None)
+parser.add_argument('--N', type=int, default=None)
 parser.add_argument('--maxNcells', type=int, default=None)
 parser.add_argument('--minNcells', type=int, default=None)
 parser.add_argument('--propcells', type=float, default=None)
@@ -25,18 +25,15 @@ np.random.seed(args.seed)
 
 # read in dataset
 print('reading')
-data = cna.read(paths.tbru_h5ad + args.inname + '.h5ad')
+data = cna.read(paths.simdata + args.inname + '.h5ad')
+del data.obsp # needed because data was saved with new version of scanpy
 sampleXmeta = data.samplem
 
 # downsample samples
 print('downsampling samples')
-batches = sampleXmeta.batch.unique()
-# remove batch 29, which has a really strong batch effect that MASC likely can't model
-batches = [b for b in batches if b != 29]
-if args.Nbatches is None:
-    args.Nbatches = len(batches)
-batches_ = np.random.choice(batches, replace=False, size=args.Nbatches)
-sampleXmeta_ = sampleXmeta[sampleXmeta.batch.isin(batches_)].copy()
+ids = sampleXmeta.index.unique()
+ids_ = np.random.choice(ids, replace=False, size=args.N)
+sampleXmeta_ = sampleXmeta[sampleXmeta.index.isin(ids_)].copy()
 print('N =', len(sampleXmeta_), 'before minNcells')
 if args.minNcells is not None:
     sampleXmeta_ = sampleXmeta_[sampleXmeta_.C >= args.minNcells]
@@ -104,5 +101,5 @@ sc.tl.umap(data_)
 if args.outname is None:
     args.outname = args.inname + '.N=' + str(N)
 print('writing', args.outname)
-data_.write(paths.tbru_h5ad + args.outname + '.h5ad')
+data_.write(paths.simdata + args.outname + '.h5ad')
 print('done')

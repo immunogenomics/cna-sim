@@ -1,27 +1,26 @@
 #!/bin/bash
 
-dset="harmcca20"
-dirname="/data/srlab1/laurie-yakir/tbru.real/2.munged"
-seed=42
-#debug=1
+dset="sepsis_pbmc"
+dirname="/data/srlab1/laurie-yakir/sim/datasets"
+seed=0
+debug=1
 
-for B in \
-    "8" \
-    "12" \
-    "18" \
-    #"4"
+for N in \
+    "40" \
+    "20" \
+
 do
     command="python -u downsample.py \
-                    --Nbatches $B \
+                    --N $N \
                     --inname $dset \
-                    --outname ${dset}_B${B}s$seed\
+                    --outname ${dset}_N${N}s$seed\
                     --seed $seed"
     echo $command
     if [ -z "$debug" ]
     then
-        bsub -J downsample$B -q medium \
-            -oo out/$B.out \
-            -eo out/$B.err \
+        bsub -J downsample$N -q medium \
+            -oo out/$N.out \
+            -eo out/$N.err \
             -R 'select[hname!=cn001]' \
             -R 'select[hname!=cn002]' \
             -R 'select[hname!=cn003]' \

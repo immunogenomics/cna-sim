@@ -4,8 +4,10 @@ simdata="/data/srlab1/laurie-yakir/sim"
 QCclusters="True" 
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
-#dset="harmcca20_B12"
-dset="sepsis_pbmc"
+#dset="tbru" noise levels: 1, 1.11, 1.25, 1.43, 1.67, 2, 2.5, 3.33, 5, 10, 99
+#dset="sepsis_pbmc"
+#dset="sepsis_pbmc_N40s0"
+dset="sepsis_pbmc_N20s0"
 
 for causalclust in \
     "leiden1" \
@@ -14,17 +16,17 @@ for causalclust in \
 
 do
     for noise in \
+        "0.001" \
+        "0.111" \
+        "0.25" \
+        "0.43" \
+        "0.67" \
         "1" \
-        "1.11" \
-        "1.25" \
-        "1.43" \
-        "1.67" \
-        "2" \
-        "2.5" \
-        "3.33" \
-        "5" \
-        "10" \
-        "99"
+        "1.5" \
+        "2.33" \
+        "4" \
+        "9" \
+        "99" \
 
     do
         for method in \
