@@ -1,0 +1,35 @@
+#!/bin/bash
+
+dset="harmcca20"
+dirname="/data/srlab1/laurie-yakir/tbru.real/2.munged"
+seed=42
+#debug=1
+
+for B in \
+    "8" \
+    "12" \
+    "18" \
+    #"4"
+do
+    command="python -u downsample.py \
+                    --Nbatches $B \
+                    --inname $dset \
+                    --outname ${dset}_B${B}s$seed\
+                    --seed $seed"
+    echo $command
+    if [ -z "$debug" ]
+    then
+        bsub -J downsample$B -q medium \
+            -oo out/$B.out \
+            -eo out/$B.err \
+            -R 'select[hname!=cn001]' \
+            -R 'select[hname!=cn002]' \
+            -R 'select[hname!=cn003]' \
+            -R 'select[hname!=cn004]' \
+            -R 'select[hname!=cn005]' \
+            "$command"
+    else
+        eval $command
+        exit
+    fi
+done
