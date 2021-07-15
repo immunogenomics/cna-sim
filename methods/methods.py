@@ -2,6 +2,39 @@ import cna
 import numpy as np
 import scipy.stats as st
 
+def _clusterperm(data, Y, B, C, T, s, clustertype):
+    #TODO: currently ignores T and s
+    sm = data.samplem
+    Nclusters = len([c for c in sm.columns if clustertype in c])
+    Nnull = 1000*Nclusters
+    X = sm[[clustertype + '_' + str(i) for i in range(Nclusters)]].values
+    Y = (Y - Y.mean()) / Y.std()
+    X = (X - X.mean(axis=0)) / X.std(axis=0)
+    betas = X.T.dot(Y) / data.N
+    Y_ = cna.tl._stats.conditional_permutation(B, Y, Nnull)
+    betas_ = X.T.dot(Y_) / data.N
+
+    ps = (((betas_**2) >= (betas**2)[:,None]).sum(axis=1) + 1) / (Nnull + 1)
+
+    cell_scores = np.zeros(len(data))
+    cell_sigs = np.zeros(len(data))
+    for c, p, beta in zip(sorted(data.obs[clustertype].unique().astype(int)), ps, betas):
+        cell_scores[data.obs[clustertype].astype(int) == c] = beta
+        cell_sigs[data.obs[clustertype].astype(int) == c] = p
+    ps = np.array(ps)
+    betas = np.array(betas)
+
+    return np.min(ps)*len(ps), cell_scores, cell_sigs < 0.05/len(ps), (betas, ps)
+
+def clusterperm_leiden0p2(*args):
+    return _clusterperm(*args, clustertype='leiden0p2')
+def clusterperm_leiden1(*args):
+    return _clusterperm(*args, clustertype='leiden1')
+def clusterperm_leiden2(*args):
+    return _clusterperm(*args, clustertype='leiden2')
+def clusterperm_leiden5(*args):
+    return _clusterperm(*args, clustertype='leiden5')
+
 def _MASC(data, Y, B, C, T, s, clustertype):
     import pandas as pd
     import numpy as np
