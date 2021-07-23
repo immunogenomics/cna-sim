@@ -1,18 +1,13 @@
 #!/bin/bash
 
-datadir="/data/srlab1/laurie-yakir/tbru.sim"
-#dset="mrna.N=65_C0p5"
-#dset="mrna.N=64_C800"
-#dset="mrna.N=63_C800"
+simdata="/data/srlab1/laurie-yakir/sim"
 #debug=1 #un-commenting this line will cause script to execute commands rather than submitting
 
 for dset in \
-    "mrna.N=149" \
-    #"prot.N=149" \
-    #"cca30.N=149" \
-    #"harmcca13.N=149" \
-    #"harmcca20.N=149" \
-    #"harmcca30.N=149" \
+    "harmcca20" \
+    "harmcca20_B18s0" \
+    "harmcca20_B12s0" \
+    "harmcca20_B8s0" \
 
 do
     for noise in \
@@ -24,19 +19,15 @@ do
 
     do
         for method in \
-            "MASC_dleiden0p2" \
-            "nhreg_pcs20_L0" \
-            "MASC_dleiden1" \
-            "MASC_dleiden2" \
-            "MASC_dleiden5" \
-	        #"nnpcreg_ms3_pcs20" \
-            #"clusterreg_dleiden0p2 clusterreg_dleiden1 clusterreg_dleiden2 clusterreg_dleiden5" \
-            #"clusterminp_dleiden0p2 clusterminp_dleiden1 clusterminp_dleiden2 clusterminp_dleiden5" \
-            #"clusterpcreg_pcs20_dleiden0p2 clusterpcreg_pcs20_dleiden1 clusterpcreg_pcs20_dleiden2 clusterpcreg_pcs20_dleiden5" \
+            "CNAfast" \
+            "MASC_leiden0p2" \
+            "MASC_leiden1" \
+            "MASC_leiden2" \
+            "MASC_leiden5" \
 
         do
-            name="real_signals_groupmtg/noise_$noise"
-            mkdir -p $datadir/$dset/$name/out
+            name="realphenos/noise_$noise/$method"
+            mkdir -p $simdata/$dset/$name/out
             command="python -u sim.py \
                     --simname $name \
                     --dset $dset \
@@ -46,9 +37,14 @@ do
             echo $command
             if [ -z "$debug" ]
             then
-                bsub -J $name[1-50] -q short \
-                    -oo $datadir/$dset/$name/out/%I.out \
-                    -eo $datadir/$dset/$name/out/%I.err \
+                bsub -J $dset$name[1-50] -q medium \
+                    -oo $simdata/$dset/$name/out/%I.out \
+                    -eo $simdata/$dset/$name/out/%I.err \
+                    -R 'select[hname!=cn001]' \
+                    -R 'select[hname!=cn002]' \
+                    -R 'select[hname!=cn003]' \
+                    -R 'select[hname!=cn004]' \
+                    -R 'select[hname!=cn005]' \
                     "$command"
             else
                 LSB_JOBINDEX=1
