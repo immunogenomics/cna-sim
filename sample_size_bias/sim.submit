@@ -1,0 +1,17 @@
+#!/bin/bash
+
+outfile_suffix="_CNA_variancescaled_s0" 
+outfile_prefix="/data/srlab/lrumker/MCSC_Project/cna-display/sim/Pop"
+
+for small_pop_frac in \
+    "0.01" \
+    "0.05" \
+    "0.1" \
+
+do
+    outfile_name="$outfile_prefix$small_pop_frac$outfile_suffix"
+    command="python -u sim.py \
+                --small_pop_frac $small_pop_frac \
+                --outfile_name $outfile_name"
+    eval $command
+done

@@ -147,6 +147,9 @@ def CNAfast_detailed(*args, **kwargs):
 def CNAfast_permute_all(*args, **kwargs):
     return CNA(*args, local_test=False, force_permute_all=True, **kwargs)
 
+def CNAfast_pseudocounts(*args, **kwargs):
+  return CNA(*args, local_test=False,force_recompute=True, **kwargs)
+
 # return p, cell_scores, cell_significance, (betas, ps)                                                     
 ########################################   
 #import meld
